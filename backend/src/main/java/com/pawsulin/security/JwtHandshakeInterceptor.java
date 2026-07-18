@@ -8,10 +8,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,20 +30,12 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
-        URI uri = request.getURI();
-        String query = uri.getQuery();
-        if (!StringUtils.hasText(query)) {
-            log.warn("WebSocket handshake rejected: missing token query parameter");
-            return false;
-        }
+        List<String> tokenParams = UriComponentsBuilder.fromUri(request.getURI())
+                .build()
+                .getQueryParams()
+                .get("token");
 
-        String token = null;
-        for (String param : query.split("&")) {
-            if (param.startsWith("token=")) {
-                token = URLDecoder.decode(param.substring("token=".length()), StandardCharsets.UTF_8);
-                break;
-            }
-        }
+        String token = (tokenParams != null && !tokenParams.isEmpty()) ? tokenParams.get(0) : null;
 
         if (!StringUtils.hasText(token) || !tokenProvider.validateToken(token)) {
             log.warn("WebSocket handshake rejected: invalid or missing JWT token");

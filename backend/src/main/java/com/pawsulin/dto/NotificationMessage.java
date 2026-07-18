@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 public class NotificationMessage {
 
     private String type;
+    private String id;
     private Long petId;
     private String petName;
     private GlucoseAlert.AlertType alertType;

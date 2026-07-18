@@ -246,6 +246,7 @@ public class GlucoseService {
                         : buildDefaultAlertMessage(alert.getAlertType(), glucoseValue, petName);
                 NotificationMessage notification = NotificationMessage.builder()
                         .type("GLUCOSE_ALERT")
+                        .id(java.util.UUID.randomUUID().toString())
                         .petId(petId)
                         .petName(petName)
                         .alertType(alert.getAlertType())
@@ -261,10 +262,11 @@ public class GlucoseService {
     }
 
     private String buildDefaultAlertMessage(com.pawsulin.entity.GlucoseAlert.AlertType alertType, BigDecimal glucoseValue, String petName) {
+        String valueStr = glucoseValue.toPlainString();
         return switch (alertType) {
-            case LOW_GLUCOSE -> String.format("%s has a low glucose reading: %.1f mg/dL", petName, glucoseValue);
-            case HIGH_GLUCOSE -> String.format("%s has a high glucose reading: %.1f mg/dL", petName, glucoseValue);
-            case CRITICAL_GLUCOSE -> String.format("%s has a critical glucose reading: %.1f mg/dL", petName, glucoseValue);
+            case LOW_GLUCOSE -> String.format("%s has a low glucose reading: %s mg/dL", petName, valueStr);
+            case HIGH_GLUCOSE -> String.format("%s has a high glucose reading: %s mg/dL", petName, valueStr);
+            case CRITICAL_GLUCOSE -> String.format("%s has a critical glucose reading: %s mg/dL", petName, valueStr);
             case MISSED_READING -> String.format("Missed glucose reading detected for %s", petName);
         };
     }

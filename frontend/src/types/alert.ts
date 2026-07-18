@@ -42,6 +42,7 @@ export type GlucoseAlertPage = PageResponse<GlucoseAlert>
 
 export interface NotificationMessage {
   type: string
+  id: string
   petId: number
   petName: string
   alertType: AlertType

@@ -66,9 +66,9 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
         <p className="px-4 py-6 text-center text-sm text-slate-500">No notifications yet.</p>
       ) : (
         <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
-          {notifications.map((n, idx) => (
+          {notifications.map((n) => (
             <NotificationItem
-              key={`notification-${idx}`}
+              key={n.id}
               notification={n}
             />
           ))}
