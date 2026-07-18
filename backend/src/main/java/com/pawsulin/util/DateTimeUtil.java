@@ -1,5 +1,7 @@
 package com.pawsulin.util;
 
+import com.pawsulin.exception.InvalidRequestException;
+
 import java.time.LocalDateTime;
 
 public class DateTimeUtil {
@@ -11,7 +13,7 @@ public class DateTimeUtil {
         ValidationUtil.requireNonNull(startTime, "startTime");
         ValidationUtil.requireNonNull(endTime, "endTime");
         if (startTime.isAfter(endTime)) {
-            throw new IllegalArgumentException("startTime must be before or equal to endTime");
+            throw new InvalidRequestException("startTime must not be after endTime");
         }
         return new DateTimeRange(startTime, endTime);
     }

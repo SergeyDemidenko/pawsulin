@@ -1,6 +1,6 @@
 package com.pawsulin.exception;
 
-import com.pawsulin.util.ValidationUtil;
+import com.pawsulin.util.ResponseUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
         log.error("Resource not found: {}", ex.getMessage());
-        Map<String, Object> body = ValidationUtil.buildErrorResponse(
+        Map<String, Object> body = ResponseUtil.buildErrorResponse(
                 HttpStatus.NOT_FOUND,
                 ex.getMessage(),
                 request.getDescription(false).replace("uri=", ""));
@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
                         FieldError::getField,
                         fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
                         (existing, replacement) -> existing));
-        Map<String, Object> body = ValidationUtil.buildValidationErrorResponse(
+        Map<String, Object> body = ResponseUtil.buildValidationErrorResponse(
                 "Validation failed",
                 fieldErrors,
                 request.getDescription(false).replace("uri=", ""));
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
         log.error("Access denied: {}", ex.getMessage());
-        Map<String, Object> body = ValidationUtil.buildErrorResponse(
+        Map<String, Object> body = ResponseUtil.buildErrorResponse(
                 HttpStatus.FORBIDDEN,
                 ex.getMessage(),
                 request.getDescription(false).replace("uri=", ""));
@@ -55,17 +55,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<Map<String, Object>> handleDuplicateResourceException(DuplicateResourceException ex, WebRequest request) {
         log.error("Duplicate resource: {}", ex.getMessage());
-        Map<String, Object> body = ValidationUtil.buildErrorResponse(
+        Map<String, Object> body = ResponseUtil.buildErrorResponse(
                 HttpStatus.CONFLICT,
                 ex.getMessage(),
                 request.getDescription(false).replace("uri=", ""));
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidRequestException(InvalidRequestException ex, WebRequest request) {
         log.error("Invalid request argument: {}", ex.getMessage());
-        Map<String, Object> body = ValidationUtil.buildErrorResponse(
+        Map<String, Object> body = ResponseUtil.buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
                 request.getDescription(false).replace("uri=", ""));
@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGlobalException(Exception ex, WebRequest request) {
         log.error("Internal server error: {}", ex.getMessage(), ex);
-        Map<String, Object> body = ValidationUtil.buildErrorResponse(
+        Map<String, Object> body = ResponseUtil.buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "An unexpected error occurred",
                 request.getDescription(false).replace("uri=", ""));

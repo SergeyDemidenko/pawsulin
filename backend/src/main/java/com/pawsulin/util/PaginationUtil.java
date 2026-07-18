@@ -1,5 +1,6 @@
 package com.pawsulin.util;
 
+import com.pawsulin.exception.InvalidRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,8 +17,10 @@ public class PaginationUtil {
         int validatedSize = ValidationUtil.requirePositive(size, "size");
         String validatedSortBy = ValidationUtil.requireHasText(sortBy, "sortBy");
         Sort.Direction validatedDirection = direction == null ? Sort.Direction.DESC : direction;
-        int normalizedSize = Math.min(validatedSize, MAX_PAGE_SIZE);
+        if (validatedSize > MAX_PAGE_SIZE) {
+            throw new InvalidRequestException("size must be less than or equal to " + MAX_PAGE_SIZE);
+        }
 
-        return PageRequest.of(validatedPage, normalizedSize, Sort.by(validatedDirection, validatedSortBy));
+        return PageRequest.of(validatedPage, validatedSize, Sort.by(validatedDirection, validatedSortBy));
     }
 }
