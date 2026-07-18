@@ -10,6 +10,5 @@ public interface GlucoseReadingMapper {
 
     @Mapping(target = "petId", source = "pet.id")
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "glucoseLevel", source = "glucoseLevel")
     GlucoseReadingDTO toDTO(GlucoseReading glucoseReading);
 }
