@@ -35,4 +35,17 @@ public class UpdateGlucoseAlertRequest {
 
     @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
+
+    /**
+     * Validates that low threshold is less than high threshold when both are provided.
+     *
+     * @return {@code true} if thresholds are valid or not both provided
+     */
+    @jakarta.validation.constraints.AssertTrue(message = "Low threshold must be less than high threshold")
+    public boolean isThresholdRangeValid() {
+        if (lowThreshold == null || highThreshold == null) {
+            return true;
+        }
+        return lowThreshold.compareTo(highThreshold) < 0;
+    }
 }

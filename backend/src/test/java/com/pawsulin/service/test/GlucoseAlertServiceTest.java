@@ -238,6 +238,29 @@ class GlucoseAlertServiceTest {
     }
 
     @Test
+    @DisplayName("Should trigger LOW_GLUCOSE alert when value is below low threshold")
+    void testCheckAlertThresholdsLowGlucoseTriggered() {
+        GlucoseAlert lowAlert = GlucoseAlert.builder()
+                .id(3L)
+                .pet(testPet)
+                .user(testUser)
+                .alertType(GlucoseAlert.AlertType.LOW_GLUCOSE)
+                .lowThreshold(new BigDecimal("70.0"))
+                .isEnabled(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        when(petRepository.findById(1L)).thenReturn(Optional.of(testPet));
+        when(glucoseAlertRepository.findByPetIdAndIsEnabledTrue(1L)).thenReturn(List.of(lowAlert));
+
+        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, 50);
+
+        assertEquals(1, triggered.size());
+        assertEquals(GlucoseAlert.AlertType.LOW_GLUCOSE, triggered.get(0).getAlertType());
+    }
+
+    @Test
     @DisplayName("Should update glucose alert successfully")
     void testUpdateGlucoseAlertSuccess() {
         UpdateGlucoseAlertRequest updateRequest = UpdateGlucoseAlertRequest.builder()

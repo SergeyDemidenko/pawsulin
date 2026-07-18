@@ -268,6 +268,7 @@ public class GlucoseAlertService {
                 boolean tooHigh = alert.getHighThreshold() != null && value.compareTo(alert.getHighThreshold()) > 0;
                 return tooLow || tooHigh;
             case MISSED_READING:
+                // MISSED_READING requires time-based logic and cannot be triggered by a glucose value check.
                 return false;
             default:
                 return false;
