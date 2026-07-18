@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { login } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
-import { getApiErrorMessage } from '../utils/apiError'
+import { extractApiErrorMessage } from '../utils/apiError'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -25,7 +25,7 @@ export function LoginPage() {
       setSession(session)
       navigate(fromPath, { replace: true })
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, 'Unable to sign in. Please try again.'))
+      setError(extractApiErrorMessage(requestError, 'Unable to sign in. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }

@@ -14,8 +14,6 @@ apiClient.interceptors.request.use((config) => {
 
   if (isJwtValid(token)) {
     config.headers.Authorization = ['Bearer', token].join(' ')
-  } else if (token) {
-    useAuthStore.getState().clearAuth()
   }
 
   return config

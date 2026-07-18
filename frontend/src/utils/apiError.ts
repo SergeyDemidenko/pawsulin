@@ -5,7 +5,7 @@ interface ErrorResponseData extends Record<string, unknown> {
   error?: string
 }
 
-export function getApiErrorMessage(error: unknown, fallback: string): string {
+export function extractApiErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as unknown
 
