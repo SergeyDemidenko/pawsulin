@@ -172,7 +172,7 @@ public class GlucoseAlertService {
      * @throws ResourceNotFoundException if pet not found or user is unauthorized
      */
     @Transactional(readOnly = true)
-    public List<GlucoseAlertDTO> checkAlertThresholds(Long petId, Long userId, Integer glucoseValue) {
+    public List<GlucoseAlertDTO> checkAlertThresholds(Long petId, Long userId, BigDecimal glucoseValue) {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet not found with id: " + petId));
 
@@ -181,7 +181,7 @@ public class GlucoseAlertService {
             throw new ResourceNotFoundException("Pet not found or unauthorized access");
         }
 
-        BigDecimal value = BigDecimal.valueOf(glucoseValue);
+        BigDecimal value = glucoseValue;
         List<GlucoseAlert> enabledAlerts = glucoseAlertRepository.findByPetIdAndIsEnabledTrue(petId);
 
         List<GlucoseAlertDTO> triggered = enabledAlerts.stream()

@@ -217,7 +217,7 @@ class GlucoseAlertServiceTest {
         when(petRepository.findById(1L)).thenReturn(Optional.of(testPet));
         when(glucoseAlertRepository.findByPetIdAndIsEnabledTrue(1L)).thenReturn(List.of(testAlert));
 
-        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, 300);
+        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, BigDecimal.valueOf(300));
 
         assertEquals(1, triggered.size());
         assertEquals(GlucoseAlert.AlertType.HIGH_GLUCOSE, triggered.get(0).getAlertType());
@@ -229,7 +229,7 @@ class GlucoseAlertServiceTest {
         when(petRepository.findById(1L)).thenReturn(Optional.of(testPet));
         when(glucoseAlertRepository.findByPetIdAndIsEnabledTrue(1L)).thenReturn(List.of(testAlert));
 
-        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, 150);
+        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, BigDecimal.valueOf(150));
 
         assertEquals(0, triggered.size());
     }
@@ -252,7 +252,7 @@ class GlucoseAlertServiceTest {
         when(petRepository.findById(1L)).thenReturn(Optional.of(testPet));
         when(glucoseAlertRepository.findByPetIdAndIsEnabledTrue(1L)).thenReturn(List.of(criticalAlert));
 
-        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, 30);
+        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, BigDecimal.valueOf(30));
 
         assertEquals(1, triggered.size());
         assertEquals(GlucoseAlert.AlertType.CRITICAL_GLUCOSE, triggered.get(0).getAlertType());
@@ -275,7 +275,7 @@ class GlucoseAlertServiceTest {
         when(petRepository.findById(1L)).thenReturn(Optional.of(testPet));
         when(glucoseAlertRepository.findByPetIdAndIsEnabledTrue(1L)).thenReturn(List.of(lowAlert));
 
-        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, 50);
+        List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(1L, 1L, BigDecimal.valueOf(50));
 
         assertEquals(1, triggered.size());
         assertEquals(GlucoseAlert.AlertType.LOW_GLUCOSE, triggered.get(0).getAlertType());
