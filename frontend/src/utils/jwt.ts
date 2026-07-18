@@ -24,7 +24,7 @@ export function isJwtExpired(token: string): boolean {
     return true
   }
 
-  return payload.exp * 1000 <= Date.now()
+  return payload.exp * 1000 < Date.now()
 }
 
 export function isJwtValid(token: string | null): token is string {

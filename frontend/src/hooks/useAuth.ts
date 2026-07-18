@@ -14,9 +14,9 @@ export function useAuth() {
 
   useEffect(() => {
     if (accessToken !== null && !isJwtValid(accessToken)) {
-      clearAuth()
+      useAuthStore.getState().clearAuth()
     }
-  }, [accessToken, clearAuth])
+  }, [accessToken])
 
   const isAuthenticated = isJwtValid(accessToken)
 
