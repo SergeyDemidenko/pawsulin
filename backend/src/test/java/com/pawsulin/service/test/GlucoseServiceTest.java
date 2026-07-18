@@ -220,6 +220,8 @@ class GlucoseServiceTest {
         GlucoseReading lowReading = GlucoseReading.builder()
                 .glucoseValue(new BigDecimal("65"))
                 .glucoseLevel(GlucoseReading.GlucoseLevel.LOW)
+                .pet(testPet)
+                .user(testUser)
                 .build();
 
         when(petRepository.findById(1L)).thenReturn(Optional.of(testPet));

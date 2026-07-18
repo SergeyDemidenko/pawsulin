@@ -1,13 +1,16 @@
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.0'
-    id 'io.spring.dependency-management' version '1.1.4'
+    id 'io.spring.dependency-management' version '1.1.6'
     id 'org.flywaydb.flyway' version '9.22.3'
 }
 
 group = 'com.pawsulin'
 version = '1.0.0-SNAPSHOT'
-sourceCompatibility = '17'
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 configurations {
     compileOnly {

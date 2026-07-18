@@ -5,7 +5,9 @@ import com.pawsulin.controller.PetController;
 import com.pawsulin.dto.CreatePetRequest;
 import com.pawsulin.dto.PetDTO;
 import com.pawsulin.dto.UpdatePetRequest;
+import com.pawsulin.security.UserPrincipal;
 import com.pawsulin.service.PetService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,10 +19,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -52,6 +58,13 @@ class PetControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(petController).build();
         objectMapper = new ObjectMapper();
 
+        UserPrincipal userPrincipal = new UserPrincipal(
+                1L, "test@example.com", "password", true,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_PET_OWNER")));
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         testPetDTO = PetDTO.builder()
                 .id(1L)
                 .userId(1L)
@@ -79,6 +92,11 @@ class PetControllerTest {
                 .name("Fluffy Updated")
                 .ageYears(4)
                 .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test

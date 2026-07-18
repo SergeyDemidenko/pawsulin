@@ -4,6 +4,7 @@ import com.pawsulin.dto.CreatePetRequest;
 import com.pawsulin.dto.PetDTO;
 import com.pawsulin.dto.UpdatePetRequest;
 import com.pawsulin.service.PetService;
+import com.pawsulin.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -90,9 +89,6 @@ public class PetController {
     }
 
     private Long extractUserIdFromAuthentication() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // In production, extract from JWT token
-        // For now, returning placeholder
-        return 1L;
+        return SecurityUtil.getCurrentUserId();
     }
 }
