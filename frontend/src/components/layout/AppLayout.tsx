@@ -1,5 +1,8 @@
+import { useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NotificationBell } from '../alerts/NotificationBell'
 import { logout } from '../../services/authService'
+import { startNotificationService, stopNotificationService } from '../../services/notificationService'
 import { useAuth } from '../../hooks/useAuth'
 
 const navItems = [
@@ -7,16 +10,27 @@ const navItems = [
   { to: '/pets', label: 'Pets' },
   { to: '/glucose', label: 'Glucose' },
   { to: '/insulin', label: 'Insulin' },
+  { to: '/alerts', label: 'Alerts' },
 ]
 
 export function AppLayout() {
   const navigate = useNavigate()
   const { clearAuth, email, isAuthenticated } = useAuth()
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      startNotificationService()
+    }
+    return () => {
+      stopNotificationService()
+    }
+  }, [isAuthenticated])
+
   const handleLogout = async () => {
     await logout().catch((error: unknown) => {
       console.error('Logout request failed', error)
     })
+    stopNotificationService()
     clearAuth()
     navigate('/login', { replace: true })
   }
@@ -45,6 +59,7 @@ export function AppLayout() {
                   </NavLink>
                 ))}
               </nav>
+              <NotificationBell />
               <div className="hidden text-right md:block">
                 <p className="text-xs text-slate-500">Signed in as</p>
                 <p className="text-sm font-medium text-slate-700">{email}</p>

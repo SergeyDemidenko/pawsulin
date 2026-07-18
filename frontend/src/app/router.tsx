@@ -5,6 +5,7 @@ import { PublicOnlyRoute } from './PublicOnlyRoute'
 import { AppLayout } from '../components/layout/AppLayout'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
+const AlertsPage = lazy(async () => import('../pages/AlertsPage').then((module) => ({ default: module.AlertsPage })))
 const DashboardPage = lazy(async () => import('../pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const GlucoseTrackerPage = lazy(async () =>
   import('../pages/GlucoseTrackerPage').then((module) => ({ default: module.GlucoseTrackerPage })),
@@ -37,6 +38,7 @@ export function AppRouter() {
             <Route path="/pets/:petId" element={<PetDetailPage />} />
             <Route path="/glucose" element={<GlucoseTrackerPage />} />
             <Route path="/insulin" element={<InsulinTrackerPage />} />
+            <Route path="/alerts" element={<AlertsPage />} />
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Route>

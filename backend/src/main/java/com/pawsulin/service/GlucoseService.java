@@ -1,7 +1,9 @@
 package com.pawsulin.service;
 
 import com.pawsulin.dto.CreateGlucoseReadingRequest;
+import com.pawsulin.dto.GlucoseAlertDTO;
 import com.pawsulin.dto.GlucoseReadingDTO;
+import com.pawsulin.dto.NotificationMessage;
 import com.pawsulin.dto.UpdateGlucoseReadingRequest;
 import com.pawsulin.dto.GlucoseAnalyticsDTO;
 import com.pawsulin.entity.GlucoseReading;
@@ -9,6 +11,7 @@ import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.ResourceNotFoundException;
 import com.pawsulin.mapper.GlucoseReadingMapper;
+import com.pawsulin.repository.GlucoseAlertRepository;
 import com.pawsulin.repository.GlucoseReadingRepository;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
@@ -40,6 +43,12 @@ public class GlucoseService {
     @Autowired
     private GlucoseReadingMapper glucoseReadingMapper;
 
+    @Autowired
+    private GlucoseAlertService glucoseAlertService;
+
+    @Autowired
+    private NotificationService notificationService;
+
     public GlucoseReadingDTO createGlucoseReading(Long petId, Long userId, CreateGlucoseReadingRequest request) {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet not found with id: " + petId));
@@ -66,6 +75,9 @@ public class GlucoseService {
 
         reading = glucoseReadingRepository.save(reading);
         log.info("Glucose reading created successfully: {} for pet: {}", reading.getId(), petId);
+
+        checkAndSendAlertNotifications(petId, userId, pet.getName(), request.getGlucoseValue());
+
         return glucoseReadingMapper.toDTO(reading);
     }
 
@@ -220,6 +232,41 @@ public class GlucoseService {
                 .highPercentage(highPercentage)
                 .criticalPercentage(criticalPercentage)
                 .build();
+    }
+
+    /**
+     * Checks configured alert thresholds for the new glucose value and sends WebSocket
+     * notifications for any that are triggered.
+     */
+    private void checkAndSendAlertNotifications(Long petId, Long userId, String petName, BigDecimal glucoseValue) {
+        try {
+            List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(petId, userId, glucoseValue.intValue());
+            for (GlucoseAlertDTO alert : triggered) {
+                String description = alert.getDescription() != null ? alert.getDescription()
+                        : buildDefaultAlertMessage(alert.getAlertType(), glucoseValue, petName);
+                NotificationMessage notification = NotificationMessage.builder()
+                        .type("GLUCOSE_ALERT")
+                        .petId(petId)
+                        .petName(petName)
+                        .alertType(alert.getAlertType())
+                        .glucoseValue(glucoseValue)
+                        .message(description)
+                        .triggeredAt(LocalDateTime.now())
+                        .build();
+                notificationService.sendNotification(userId, notification);
+            }
+        } catch (Exception e) {
+            log.warn("Alert threshold check failed for pet: {}; notifications skipped", petId, e);
+        }
+    }
+
+    private String buildDefaultAlertMessage(com.pawsulin.entity.GlucoseAlert.AlertType alertType, BigDecimal glucoseValue, String petName) {
+        return switch (alertType) {
+            case LOW_GLUCOSE -> String.format("%s has a low glucose reading: %.1f mg/dL", petName, glucoseValue);
+            case HIGH_GLUCOSE -> String.format("%s has a high glucose reading: %.1f mg/dL", petName, glucoseValue);
+            case CRITICAL_GLUCOSE -> String.format("%s has a critical glucose reading: %.1f mg/dL", petName, glucoseValue);
+            case MISSED_READING -> String.format("Missed glucose reading detected for %s", petName);
+        };
     }
 
     private GlucoseReading.GlucoseLevel determineGlucoseLevel(BigDecimal glucoseValue) {
