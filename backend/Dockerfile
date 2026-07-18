@@ -7,7 +7,7 @@ RUN apt-get update \
     && groupadd --system spring \
     && useradd --system --gid spring spring
 
-COPY backend/build/libs/*SNAPSHOT.jar /app/app.jar
+COPY backend/build/libs/backend.jar /app/app.jar
 
 RUN chown spring:spring /app/app.jar
 USER spring
