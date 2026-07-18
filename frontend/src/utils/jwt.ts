@@ -10,7 +10,8 @@ function decodeJwtPayload(token: string): JwtPayload | null {
 
   try {
     const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    const normalizedPayload = payload.padEnd(Math.ceil(payload.length / 4) * 4, '=')
+    const paddingLength = (4 - (payload.length % 4)) % 4
+    const normalizedPayload = payload.padEnd(payload.length + paddingLength, '=')
     return JSON.parse(atob(normalizedPayload)) as JwtPayload
   } catch {
     return null
@@ -24,4 +25,8 @@ export function isJwtExpired(token: string): boolean {
   }
 
   return payload.exp * 1000 <= Date.now()
+}
+
+export function isJwtValid(token: string | null): token is string {
+  return token !== null && !isJwtExpired(token)
 }

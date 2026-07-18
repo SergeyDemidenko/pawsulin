@@ -14,14 +14,9 @@ export function AppLayout() {
   const { clearAuth, email, isAuthenticated } = useAuth()
 
   const handleLogout = async () => {
-    try {
-      await logout()
-    } catch (error) {
-      void error
-    } finally {
-      clearAuth()
-      navigate('/login', { replace: true })
-    }
+    await logout().catch(() => undefined)
+    clearAuth()
+    navigate('/login', { replace: true })
   }
 
   return (

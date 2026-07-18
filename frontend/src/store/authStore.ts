@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { AuthActions, AuthState } from '../types/auth'
-import { isJwtExpired } from '../utils/jwt'
 
 type AuthStore = AuthState & AuthActions
 
@@ -40,11 +39,6 @@ export const useAuthStore = create<AuthStore>()(
         email: state.email,
         role: state.role,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state?.accessToken && isJwtExpired(state.accessToken)) {
-          state.clearAuth()
-        }
-      },
     },
   ),
 )

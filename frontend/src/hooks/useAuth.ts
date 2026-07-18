@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { useAuthStore } from '../store/authStore'
-import { isJwtExpired } from '../utils/jwt'
+import { isJwtValid } from '../utils/jwt'
 
 export function useAuth() {
   const accessToken = useAuthStore((state) => state.accessToken)
@@ -10,7 +11,14 @@ export function useAuth() {
   const role = useAuthStore((state) => state.role)
   const setSession = useAuthStore((state) => state.setSession)
   const clearAuth = useAuthStore((state) => state.clearAuth)
-  const isAuthenticated = Boolean(accessToken) && !isJwtExpired(accessToken)
+
+  useEffect(() => {
+    if (accessToken !== null && !isJwtValid(accessToken)) {
+      clearAuth()
+    }
+  }, [accessToken, clearAuth])
+
+  const isAuthenticated = isJwtValid(accessToken)
 
   return {
     accessToken,

@@ -1,11 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { login, register } from '../services/authService'
-import { useAuth } from '../hooks/useAuth'
+import { register } from '../services/authService'
+import { getApiErrorMessage } from '../utils/apiError'
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const { setSession } = useAuth()
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -27,11 +26,12 @@ export function RegisterPage() {
 
     try {
       await register({ firstName, lastName, email, password })
-      const session = await login({ email, password })
-      setSession(session)
-      navigate('/dashboard', { replace: true })
-    } catch {
-      setError('Could not create account. Please verify input and try again.')
+      navigate('/login', {
+        replace: true,
+        state: { message: 'Account created successfully. Please sign in.' },
+      })
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, 'Could not create account. Please verify input and try again.'))
     } finally {
       setIsSubmitting(false)
     }
