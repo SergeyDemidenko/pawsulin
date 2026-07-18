@@ -1,26 +1,15 @@
-# --- Build stage ---
-FROM gradle:8.5-jdk17 AS build
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Copy Gradle wrapper and build files from repo root (multi-module project)
-COPY gradlew gradlew.bat settings.gradle gradle.properties ./
-COPY gradle ./gradle
-COPY backend/build.gradle ./backend/build.gradle
-COPY backend/src ./backend/src
+RUN apt-get update \
+    && apt-get install -y curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system spring \
+    && useradd --system --gid spring spring
 
-RUN ./gradlew :backend:bootJar --no-daemon -x test
-RUN cp "$(find /app/backend/build/libs -name '*.jar' ! -name '*-plain.jar')" /app/app.jar
+COPY backend/build/libs/*SNAPSHOT.jar /app/app.jar
 
-# --- Runtime stage ---
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-
-RUN apk add --no-cache curl \
-    && addgroup -S spring && adduser -S spring -G spring
-
-COPY --from=build /app/app.jar /app/app.jar
-
-RUN chown spring:spring app.jar
+RUN chown spring:spring /app/app.jar
 USER spring
 
 EXPOSE 8080

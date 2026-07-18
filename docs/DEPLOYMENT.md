@@ -28,19 +28,25 @@ The repository includes Dockerfiles for the backend and frontend plus a root `do
 
 ## Container deployment
 
-1. Build images from the repository root:
+1. Build the backend artifact from the repository root:
+
+   ```bash
+   ./gradlew :backend:bootJar
+   ```
+
+2. Build images from the repository root:
 
    ```bash
    docker compose build
    ```
 
-2. Start services:
+3. Start services:
 
    ```bash
    docker compose up -d
    ```
 
-3. Verify health:
+4. Verify health:
 
    - Backend health: `http://<host>:8080/actuator/health`
    - Swagger UI: `http://<host>:8080/swagger-ui.html`
