@@ -15,6 +15,8 @@ interface GlucoseFormState {
   notes: string
 }
 
+const minimumGlucoseValue = 20
+
 function createInitialState(): GlucoseFormState {
   return {
     glucoseValue: '',
@@ -52,8 +54,8 @@ export function GlucoseEntryForm({ petName, isSubmitting, error, onSubmit }: Glu
 
     const glucoseValue = Number.parseFloat(formState.glucoseValue)
 
-    if (Number.isNaN(glucoseValue) || glucoseValue < 20) {
-      setValidationError('Glucose value must be at least 20 mg/dL.')
+    if (Number.isNaN(glucoseValue) || glucoseValue < minimumGlucoseValue) {
+      setValidationError(`Glucose value must be at least ${minimumGlucoseValue} mg/dL.`)
       return
     }
 
@@ -83,7 +85,7 @@ export function GlucoseEntryForm({ petName, isSubmitting, error, onSubmit }: Glu
           <input
             required
             type="number"
-            min={20}
+            min={minimumGlucoseValue}
             step={0.1}
             inputMode="decimal"
             value={formState.glucoseValue}

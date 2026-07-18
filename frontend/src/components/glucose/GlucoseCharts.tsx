@@ -16,6 +16,11 @@ import type { GlucoseAnalytics, GlucoseReading, GlucoseLevel } from '../../types
 import { formatDateForChart } from '../../utils/dateTime'
 import { formatGlucoseLevel, glucoseLevelColors } from './glucosePresentation'
 
+const targetRange = {
+  min: 70,
+  max: 180,
+} as const
+
 interface GlucoseChartsProps {
   readings: GlucoseReading[] | undefined
   analytics: GlucoseAnalytics | undefined
@@ -56,13 +61,15 @@ export function GlucoseCharts({ readings, analytics, isLoading }: GlucoseChartsP
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Trend chart</h2>
-          <p className="mt-1 text-sm text-slate-600">Track changes over time and compare readings to the 70–180 mg/dL target band.</p>
+          <p className="mt-1 text-sm text-slate-600">
+            Track changes over time and compare readings to the {targetRange.min}–{targetRange.max} mg/dL target band.
+          </p>
         </div>
         <div className="mt-6 h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData} margin={{ top: 16, right: 16, left: 0, bottom: 16 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <ReferenceArea y1={70} y2={180} fill="#d1fae5" fillOpacity={0.45} />
+              <ReferenceArea y1={targetRange.min} y2={targetRange.max} fill="#d1fae5" fillOpacity={0.45} />
               <XAxis dataKey="label" minTickGap={32} />
               <YAxis unit=" mg/dL" width={84} />
               <Tooltip formatter={(value) => [`${value ?? '—'} mg/dL`, 'Glucose']} />
