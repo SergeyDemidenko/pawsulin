@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { CreateGlucoseReadingRequest } from '../../types/glucose'
 import { formatDateTimeForInput, toApiDateTime } from '../../utils/dateTime'
 import { minimumGlucoseValue } from './glucoseConfig'
@@ -25,8 +25,7 @@ function createInitialState(): GlucoseFormState {
 }
 
 export function GlucoseEntryForm({ petName, isSubmitting, error, onSubmit }: GlucoseEntryFormProps) {
-  const initialState = useMemo(() => createInitialState(), [])
-  const [formState, setFormState] = useState<GlucoseFormState>(initialState)
+  const [formState, setFormState] = useState<GlucoseFormState>(() => createInitialState())
   const [validationError, setValidationError] = useState<string | null>(null)
 
   useEffect(() => {
