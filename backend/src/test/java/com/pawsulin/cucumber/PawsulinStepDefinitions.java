@@ -13,10 +13,6 @@ import com.pawsulin.dto.auth.AuthResponse;
 import com.pawsulin.dto.auth.LoginRequest;
 import com.pawsulin.dto.auth.RegisterRequest;
 import com.pawsulin.security.UserPrincipal;
-import com.pawsulin.service.AuthService;
-import com.pawsulin.service.GlucoseService;
-import com.pawsulin.service.InsulinService;
-import com.pawsulin.service.PetService;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
@@ -37,10 +33,6 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 public class PawsulinStepDefinitions {
@@ -52,16 +44,7 @@ public class PawsulinStepDefinitions {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private AuthService authService;
-
-    @Autowired
-    private PetService petService;
-
-    @Autowired
-    private GlucoseService glucoseService;
-
-    @Autowired
-    private InsulinService insulinService;
+    private CucumberScenarioState scenarioState;
 
     private String requestBody;
     private MvcResult lastResult;
@@ -69,7 +52,7 @@ public class PawsulinStepDefinitions {
 
     @Before
     public void setUpScenario() {
-        reset(authService, petService, glucoseService, insulinService);
+        scenarioState.reset();
         SecurityContextHolder.clearContext();
         requestBody = null;
         lastResult = null;
@@ -115,7 +98,7 @@ public class PawsulinStepDefinitions {
                 .role("PET_OWNER")
                 .isActive(true)
                 .build();
-        when(authService.register(any(RegisterRequest.class))).thenReturn(userDTO);
+        scenarioState.setRegisteredUser(userDTO);
     }
 
     @When("the client registers")
@@ -150,7 +133,7 @@ public class PawsulinStepDefinitions {
                 .email("test@example.com")
                 .role("PET_OWNER")
                 .build();
-        when(authService.login(any(LoginRequest.class))).thenReturn(authResponse);
+        scenarioState.setAuthResponse(authResponse);
     }
 
     @When("the client logs in")
@@ -194,7 +177,7 @@ public class PawsulinStepDefinitions {
                 .medicalNotes("Requires insulin twice daily")
                 .isActive(true)
                 .build();
-        when(petService.createPet(anyLong(), any(CreatePetRequest.class))).thenReturn(petDTO);
+        scenarioState.setPetDTO(petDTO);
     }
 
     @When("the client creates a pet")
@@ -232,8 +215,7 @@ public class PawsulinStepDefinitions {
                 .readingTime(LocalDateTime.parse("2026-07-18T08:30:00"))
                 .notes("Morning reading")
                 .build();
-        when(glucoseService.createGlucoseReading(anyLong(), anyLong(), any(CreateGlucoseReadingRequest.class)))
-                .thenReturn(readingDTO);
+        scenarioState.setGlucoseReadingDTO(readingDTO);
     }
 
     @When("the client creates a glucose reading for pet {long}")
@@ -276,8 +258,7 @@ public class PawsulinStepDefinitions {
                 .expirationDate(LocalDate.parse("2027-01-01"))
                 .notes("Morning dose")
                 .build();
-        when(insulinService.createInsulinLog(anyLong(), anyLong(), any(CreateInsulinLogRequest.class)))
-                .thenReturn(logDTO);
+        scenarioState.setInsulinLogDTO(logDTO);
     }
 
     @When("the client creates an insulin log for pet {long}")

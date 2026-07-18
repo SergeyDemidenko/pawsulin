@@ -16,8 +16,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.Mockito.mock;
-
 @Configuration
 public class CucumberTestConfig {
 
@@ -29,60 +27,55 @@ public class CucumberTestConfig {
     }
 
     @Bean
-    public AuthService authService() {
-        return mock(AuthService.class);
+    public CucumberScenarioState cucumberScenarioState() {
+        return new CucumberScenarioState();
     }
 
     @Bean
-    public PetService petService() {
-        return mock(PetService.class);
-    }
+    public MockMvc mockMvc(CucumberScenarioState scenarioState, ObjectMapper objectMapper) {
+        AuthController authController = new AuthController();
+        ReflectionTestUtils.setField(authController, "authService", new AuthService() {
+            @Override
+            public com.pawsulin.dto.UserDTO register(com.pawsulin.dto.auth.RegisterRequest request) {
+                return scenarioState.getRegisteredUser();
+            }
 
-    @Bean
-    public GlucoseService glucoseService() {
-        return mock(GlucoseService.class);
-    }
+            @Override
+            public com.pawsulin.dto.auth.AuthResponse login(com.pawsulin.dto.auth.LoginRequest request) {
+                return scenarioState.getAuthResponse();
+            }
+        });
 
-    @Bean
-    public InsulinService insulinService() {
-        return mock(InsulinService.class);
-    }
+        PetController petController = new PetController();
+        ReflectionTestUtils.setField(petController, "petService", new PetService() {
+            @Override
+            public com.pawsulin.dto.PetDTO createPet(Long userId, com.pawsulin.dto.CreatePetRequest request) {
+                return scenarioState.getPetDTO();
+            }
+        });
 
-    @Bean
-    public AuthController authController(AuthService authService) {
-        AuthController controller = new AuthController();
-        ReflectionTestUtils.setField(controller, "authService", authService);
-        return controller;
-    }
+        GlucoseController glucoseController = new GlucoseController();
+        ReflectionTestUtils.setField(glucoseController, "glucoseService", new GlucoseService() {
+            @Override
+            public com.pawsulin.dto.GlucoseReadingDTO createGlucoseReading(
+                    Long petId,
+                    Long userId,
+                    com.pawsulin.dto.CreateGlucoseReadingRequest request) {
+                return scenarioState.getGlucoseReadingDTO();
+            }
+        });
 
-    @Bean
-    public PetController petController(PetService petService) {
-        PetController controller = new PetController();
-        ReflectionTestUtils.setField(controller, "petService", petService);
-        return controller;
-    }
+        InsulinController insulinController = new InsulinController();
+        ReflectionTestUtils.setField(insulinController, "insulinService", new InsulinService() {
+            @Override
+            public com.pawsulin.dto.InsulinLogDTO createInsulinLog(
+                    Long petId,
+                    Long userId,
+                    com.pawsulin.dto.CreateInsulinLogRequest request) {
+                return scenarioState.getInsulinLogDTO();
+            }
+        });
 
-    @Bean
-    public GlucoseController glucoseController(GlucoseService glucoseService) {
-        GlucoseController controller = new GlucoseController();
-        ReflectionTestUtils.setField(controller, "glucoseService", glucoseService);
-        return controller;
-    }
-
-    @Bean
-    public InsulinController insulinController(InsulinService insulinService) {
-        InsulinController controller = new InsulinController();
-        ReflectionTestUtils.setField(controller, "insulinService", insulinService);
-        return controller;
-    }
-
-    @Bean
-    public MockMvc mockMvc(
-            AuthController authController,
-            PetController petController,
-            GlucoseController glucoseController,
-            InsulinController insulinController,
-            ObjectMapper objectMapper) {
         return MockMvcBuilders.standaloneSetup(
                         authController,
                         petController,
