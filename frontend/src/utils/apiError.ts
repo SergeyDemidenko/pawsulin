@@ -1,24 +1,28 @@
 import axios from 'axios'
 
-interface ErrorResponseData {
+interface ErrorResponseData extends Record<string, unknown> {
   message?: string
   error?: string
 }
 
 export function getApiErrorMessage(error: unknown, fallback: string): string {
-  if (axios.isAxiosError<ErrorResponseData>(error)) {
-    const data = error.response?.data
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as unknown
 
     if (typeof data === 'string' && data.length > 0) {
       return data
     }
 
-    if (typeof data?.message === 'string' && data.message.length > 0) {
-      return data.message
-    }
+    if (typeof data === 'object' && data !== null) {
+      const errorData = data as ErrorResponseData
 
-    if (typeof data?.error === 'string' && data.error.length > 0) {
-      return data.error
+      if (typeof errorData.message === 'string' && errorData.message.length > 0) {
+        return errorData.message
+      }
+
+      if (typeof errorData.error === 'string' && errorData.error.length > 0) {
+        return errorData.error
+      }
     }
 
     if (!error.response) {
