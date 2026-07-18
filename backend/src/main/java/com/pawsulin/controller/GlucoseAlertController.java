@@ -4,12 +4,12 @@ import com.pawsulin.dto.CreateGlucoseAlertRequest;
 import com.pawsulin.dto.GlucoseAlertDTO;
 import com.pawsulin.dto.UpdateGlucoseAlertRequest;
 import com.pawsulin.service.GlucoseAlertService;
+import com.pawsulin.util.PaginationUtil;
 import com.pawsulin.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -85,7 +85,7 @@ public class GlucoseAlertController {
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
         Long userId = SecurityUtil.getCurrentUserId();
         log.info("Get glucose alerts request for pet: {} by user: {}", petId, userId);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PaginationUtil.createPageable(page, size, sortBy, direction);
         Page<GlucoseAlertDTO> alerts = glucoseAlertService.getAlertsByPetId(petId, userId, pageable);
         return ResponseEntity.ok(alerts);
     }
@@ -108,7 +108,7 @@ public class GlucoseAlertController {
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
         Long userId = SecurityUtil.getCurrentUserId();
         log.info("Get all glucose alerts for user: {}", userId);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PaginationUtil.createPageable(page, size, sortBy, direction);
         Page<GlucoseAlertDTO> alerts = glucoseAlertService.getAlertsByUserId(userId, pageable);
         return ResponseEntity.ok(alerts);
     }

@@ -4,12 +4,13 @@ import com.pawsulin.dto.CreateInsulinLogRequest;
 import com.pawsulin.dto.InsulinLogDTO;
 import com.pawsulin.dto.UpdateInsulinLogRequest;
 import com.pawsulin.service.InsulinService;
+import com.pawsulin.util.DateTimeUtil;
+import com.pawsulin.util.PaginationUtil;
 import com.pawsulin.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -89,7 +90,7 @@ public class InsulinController {
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
         Long userId = SecurityUtil.getCurrentUserId();
         log.info("Get insulin logs request for pet: {} by user: {}", petId, userId);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PaginationUtil.createPageable(page, size, sortBy, direction);
         Page<InsulinLogDTO> logs = insulinService.getInsulinLogsByPetId(petId, userId, pageable);
         return ResponseEntity.ok(logs);
     }
@@ -109,8 +110,9 @@ public class InsulinController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         Long userId = SecurityUtil.getCurrentUserId();
-        log.info("Get insulin logs by date range for pet: {} from {} to {} by user: {}", petId, startTime, endTime, userId);
-        List<InsulinLogDTO> logs = insulinService.getInsulinLogsByDateRange(petId, userId, startTime, endTime);
+        DateTimeUtil.DateTimeRange range = DateTimeUtil.validateAndCreateRange(startTime, endTime);
+        log.info("Get insulin logs by date range for pet: {} from {} to {} by user: {}", petId, range.startTime(), range.endTime(), userId);
+        List<InsulinLogDTO> logs = insulinService.getInsulinLogsByDateRange(petId, userId, range.startTime(), range.endTime());
         return ResponseEntity.ok(logs);
     }
 

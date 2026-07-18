@@ -5,12 +5,13 @@ import com.pawsulin.dto.GlucoseReadingDTO;
 import com.pawsulin.dto.UpdateGlucoseReadingRequest;
 import com.pawsulin.dto.GlucoseAnalyticsDTO;
 import com.pawsulin.service.GlucoseService;
+import com.pawsulin.util.DateTimeUtil;
+import com.pawsulin.util.PaginationUtil;
 import com.pawsulin.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -61,7 +62,7 @@ public class GlucoseController {
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
         Long userId = extractUserIdFromAuthentication();
         log.info("Get glucose readings request for pet: {} by user: {}", petId, userId);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PaginationUtil.createPageable(page, size, sortBy, direction);
         Page<GlucoseReadingDTO> readings = glucoseService.getGlucoseReadingsByPetId(petId, userId, pageable);
         return ResponseEntity.ok(readings);
     }
@@ -73,8 +74,9 @@ public class GlucoseController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         Long userId = extractUserIdFromAuthentication();
-        log.info("Get glucose readings by date range for pet: {} from {} to {} by user: {}", petId, startTime, endTime, userId);
-        List<GlucoseReadingDTO> readings = glucoseService.getGlucoseReadingsByDateRange(petId, userId, startTime, endTime);
+        DateTimeUtil.DateTimeRange range = DateTimeUtil.validateAndCreateRange(startTime, endTime);
+        log.info("Get glucose readings by date range for pet: {} from {} to {} by user: {}", petId, range.startTime(), range.endTime(), userId);
+        List<GlucoseReadingDTO> readings = glucoseService.getGlucoseReadingsByDateRange(petId, userId, range.startTime(), range.endTime());
         return ResponseEntity.ok(readings);
     }
 
@@ -108,8 +110,9 @@ public class GlucoseController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         Long userId = extractUserIdFromAuthentication();
-        log.info("Get glucose analytics for pet: {} from {} to {} by user: {}", petId, startTime, endTime, userId);
-        GlucoseAnalyticsDTO analytics = glucoseService.getGlucoseAnalytics(petId, userId, startTime, endTime);
+        DateTimeUtil.DateTimeRange range = DateTimeUtil.validateAndCreateRange(startTime, endTime);
+        log.info("Get glucose analytics for pet: {} from {} to {} by user: {}", petId, range.startTime(), range.endTime(), userId);
+        GlucoseAnalyticsDTO analytics = glucoseService.getGlucoseAnalytics(petId, userId, range.startTime(), range.endTime());
         return ResponseEntity.ok(analytics);
     }
 

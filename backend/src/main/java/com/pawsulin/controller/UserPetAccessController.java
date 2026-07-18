@@ -3,12 +3,12 @@ package com.pawsulin.controller;
 import com.pawsulin.dto.UserPetAccessDTO;
 import com.pawsulin.dto.UserPetAccessRequest;
 import com.pawsulin.service.UserPetAccessService;
+import com.pawsulin.util.PaginationUtil;
 import com.pawsulin.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -67,7 +67,7 @@ public class UserPetAccessController {
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
         Long userId = SecurityUtil.getCurrentUserId();
         log.info("Get access records request for pet: {} by user: {}", petId, userId);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PaginationUtil.createPageable(page, size, sortBy, direction);
         Page<UserPetAccessDTO> accessPage = userPetAccessService.getAccessByPetId(petId, userId, pageable);
         return ResponseEntity.ok(accessPage);
     }
@@ -148,7 +148,7 @@ public class UserPetAccessController {
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
         Long userId = SecurityUtil.getCurrentUserId();
         log.info("Get all pet access records for user: {}", userId);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PaginationUtil.createPageable(page, size, sortBy, direction);
         Page<UserPetAccessDTO> accessPage = userPetAccessService.getAccessByUserId(userId, pageable);
         return ResponseEntity.ok(accessPage);
     }
