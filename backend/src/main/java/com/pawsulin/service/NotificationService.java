@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,12 +16,20 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Manages WebSocket sessions per user and broadcasts notification messages.
+ * Sessions are wrapped in {@link ConcurrentWebSocketSessionDecorator} to ensure
+ * thread-safe message sending without synchronising on the session object itself.
  */
 @Service
 @Slf4j
 public class NotificationService {
 
-    private final ConcurrentHashMap<Long, List<WebSocketSession>> userSessions = new ConcurrentHashMap<>();
+    /** Maximum time (ms) to wait for a send operation before giving up. */
+    private static final int SEND_TIME_LIMIT_MS = 5_000;
+    /** Maximum outbound buffer size per session (bytes). */
+    private static final int BUFFER_SIZE_LIMIT = 64 * 1024;
+
+    private final ConcurrentHashMap<Long, List<ConcurrentWebSocketSessionDecorator>> userSessions =
+            new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
 
     public NotificationService() {
@@ -36,20 +45,23 @@ public class NotificationService {
      * @param session the WebSocket session to register
      */
     public void registerSession(Long userId, WebSocketSession session) {
-        userSessions.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(session);
-        log.info("WebSocket session registered for user: {}, total sessions: {}", userId, userSessions.get(userId).size());
+        ConcurrentWebSocketSessionDecorator safeSession =
+                new ConcurrentWebSocketSessionDecorator(session, SEND_TIME_LIMIT_MS, BUFFER_SIZE_LIMIT);
+        userSessions.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(safeSession);
+        log.info("WebSocket session registered for user: {}, total sessions: {}", userId,
+                userSessions.get(userId).size());
     }
 
     /**
      * Removes a WebSocket session for the given user.
      *
      * @param userId  the authenticated user identifier
-     * @param session the WebSocket session to remove
+     * @param session the original WebSocket session to remove
      */
     public void removeSession(Long userId, WebSocketSession session) {
-        List<WebSocketSession> sessions = userSessions.get(userId);
+        List<ConcurrentWebSocketSessionDecorator> sessions = userSessions.get(userId);
         if (sessions != null) {
-            sessions.remove(session);
+            sessions.removeIf(decorator -> decorator.getId().equals(session.getId()));
             if (sessions.isEmpty()) {
                 userSessions.remove(userId);
             }
@@ -64,7 +76,7 @@ public class NotificationService {
      * @param message the notification message to send
      */
     public void sendNotification(Long userId, NotificationMessage message) {
-        List<WebSocketSession> sessions = userSessions.get(userId);
+        List<ConcurrentWebSocketSessionDecorator> sessions = userSessions.get(userId);
         if (sessions == null || sessions.isEmpty()) {
             log.debug("No active WebSocket sessions for user: {}", userId);
             return;
@@ -73,12 +85,10 @@ public class NotificationService {
         try {
             String payload = objectMapper.writeValueAsString(message);
             TextMessage textMessage = new TextMessage(payload);
-            for (WebSocketSession session : sessions) {
+            for (ConcurrentWebSocketSessionDecorator session : sessions) {
                 if (session.isOpen()) {
                     try {
-                        synchronized (session) {
-                            session.sendMessage(textMessage);
-                        }
+                        session.sendMessage(textMessage);
                     } catch (IOException e) {
                         log.warn("Failed to send notification to session: {}", session.getId(), e);
                     }

@@ -46,8 +46,10 @@ function connect() {
     try {
       const message = JSON.parse(event.data as string) as NotificationMessage
       useNotificationStore.getState().addNotification(message)
-    } catch {
-      // ignore malformed messages
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[notificationService] Failed to parse WebSocket message:', err)
+      }
     }
   }
 

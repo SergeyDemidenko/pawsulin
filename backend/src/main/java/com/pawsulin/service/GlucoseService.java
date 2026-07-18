@@ -240,7 +240,7 @@ public class GlucoseService {
      */
     private void checkAndSendAlertNotifications(Long petId, Long userId, String petName, BigDecimal glucoseValue) {
         try {
-            List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(petId, userId, glucoseValue.intValue());
+            List<GlucoseAlertDTO> triggered = glucoseAlertService.checkAlertThresholds(petId, userId, glucoseValue);
             for (GlucoseAlertDTO alert : triggered) {
                 String description = alert.getDescription() != null ? alert.getDescription()
                         : buildDefaultAlertMessage(alert.getAlertType(), glucoseValue, petName);

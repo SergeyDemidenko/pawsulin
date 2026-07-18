@@ -68,7 +68,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
         <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
           {notifications.map((n, idx) => (
             <NotificationItem
-              key={`${n.triggeredAt}-${idx}`}
+              key={`notification-${idx}`}
               notification={n}
             />
           ))}

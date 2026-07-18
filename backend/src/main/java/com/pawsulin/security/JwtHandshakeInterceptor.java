@@ -10,6 +10,8 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -39,7 +41,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         String token = null;
         for (String param : query.split("&")) {
             if (param.startsWith("token=")) {
-                token = param.substring("token=".length());
+                token = URLDecoder.decode(param.substring("token=".length()), StandardCharsets.UTF_8);
                 break;
             }
         }
