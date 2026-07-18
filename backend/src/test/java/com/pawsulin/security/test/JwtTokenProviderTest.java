@@ -17,7 +17,7 @@ class JwtTokenProviderTest {
     @BeforeEach
     void setUp() {
         jwtTokenProvider = new JwtTokenProvider();
-        ReflectionTestUtils.setField(jwtTokenProvider, "jwtSecret", "testSecretKeyForJwtTokenProviderTestingPurpose1234567890");
+        ReflectionTestUtils.setField(jwtTokenProvider, "jwtSecret", "testSecretKeyForJwtTokenProviderTestingPurposeOnly1234567890abcdef");
         ReflectionTestUtils.setField(jwtTokenProvider, "jwtExpirationInMs", 86400000L);
         ReflectionTestUtils.setField(jwtTokenProvider, "refreshTokenExpirationInMs", 604800000L);
     }

@@ -6,7 +6,9 @@ import com.pawsulin.dto.CreateGlucoseReadingRequest;
 import com.pawsulin.dto.GlucoseReadingDTO;
 import com.pawsulin.dto.UpdateGlucoseReadingRequest;
 import com.pawsulin.dto.GlucoseAnalyticsDTO;
+import com.pawsulin.security.UserPrincipal;
 import com.pawsulin.service.GlucoseService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,11 +20,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -52,6 +58,13 @@ class GlucoseControllerTest {
         objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
 
+        UserPrincipal userPrincipal = new UserPrincipal(
+                1L, "test@example.com", "password", true,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_PET_OWNER")));
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         testReadingDTO = GlucoseReadingDTO.builder()
                 .id(1L)
                 .petId(1L)
@@ -61,6 +74,11 @@ class GlucoseControllerTest {
                 .readingTime(LocalDateTime.now())
                 .notes("Morning reading")
                 .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
