@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
+import { isJwtExpired } from '../utils/jwt'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api',
@@ -11,8 +12,10 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken
 
-  if (token) {
+  if (token && !isJwtExpired(token)) {
     config.headers.Authorization = ['Bearer', token].join(' ')
+  } else if (token) {
+    useAuthStore.getState().clearAuth()
   }
 
   return config
