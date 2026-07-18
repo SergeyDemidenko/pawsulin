@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException ex, WebRequest request) {
         log.error("Validation error: {}", ex.getMessage());
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(java.util.stream.Collectors.toMap(
+                .collect(Collectors.toMap(
                         FieldError::getField,
                         fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
                         (existing, replacement) -> existing));
