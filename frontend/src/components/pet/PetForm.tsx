@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { CreatePetRequest, Pet, UpdatePetRequest } from '../../types/pet'
 
 interface PetFormProps {
@@ -49,8 +49,12 @@ export function PetForm({
   const [formState, setFormState] = useState<PetFormState>(initialState)
   const [validationError, setValidationError] = useState<string | null>(null)
 
+  useEffect(() => {
+    setFormState(initialState)
+  }, [initialState])
+
   const handleChange =
-    (field: keyof PetFormState) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (field: keyof PetFormState) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormState((currentState) => ({
         ...currentState,
         [field]: event.target.value,
@@ -115,6 +119,7 @@ export function PetForm({
             required
             minLength={2}
             maxLength={100}
+            type="text"
             value={formState.name}
             onChange={handleChange('name')}
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -126,6 +131,7 @@ export function PetForm({
             required={includeSpeciesField}
             minLength={2}
             maxLength={50}
+            type="text"
             disabled={!includeSpeciesField}
             value={formState.species}
             onChange={handleChange('species')}
@@ -136,6 +142,7 @@ export function PetForm({
           <span className="mb-1 block text-sm font-medium text-slate-700">Breed</span>
           <input
             maxLength={100}
+            type="text"
             value={formState.breed}
             onChange={handleChange('breed')}
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -147,6 +154,7 @@ export function PetForm({
             required
             minLength={2}
             maxLength={50}
+            type="text"
             value={formState.diabetesType}
             onChange={handleChange('diabetesType')}
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -156,6 +164,7 @@ export function PetForm({
           <span className="mb-1 block text-sm font-medium text-slate-700">Age (years)</span>
           <input
             required
+            type="number"
             min={0}
             step={1}
             inputMode="numeric"
@@ -167,6 +176,7 @@ export function PetForm({
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">Weight (kg)</span>
           <input
+            type="number"
             min={0.1}
             step={0.1}
             inputMode="decimal"

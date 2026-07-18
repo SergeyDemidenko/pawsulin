@@ -88,7 +88,7 @@ export function PetDetailPage() {
           submitLabel="Save changes"
           isSubmitting={updatePetMutation.isPending}
           error={submitError}
-          onSubmit={handleUpdate}
+          onSubmit={(request) => handleUpdate(request as UpdatePetRequest)}
         />
       </div>
     </div>
