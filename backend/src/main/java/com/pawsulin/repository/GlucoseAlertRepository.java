@@ -9,4 +9,5 @@ import java.util.List;
 public interface GlucoseAlertRepository extends JpaRepository<GlucoseAlert, Long> {
     List<GlucoseAlert> findByPetIdAndIsEnabledTrue(Long petId);
     List<GlucoseAlert> findByUserIdAndIsEnabledTrue(Long userId);
+    List<GlucoseAlert> findByPetId(Long petId);
 }
