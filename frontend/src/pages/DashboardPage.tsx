@@ -2,43 +2,35 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { GlucoseAnalyticsCards } from '../components/glucose/GlucoseAnalyticsCards'
 import { GlucoseCharts } from '../components/glucose/GlucoseCharts'
+import {
+  buildGlucoseRange,
+  dashboardHistoryPageSize,
+  defaultPetPageSize,
+  glucoseRangeOptions,
+} from '../components/glucose/glucoseConfig'
 import { GlucoseHistoryTable } from '../components/glucose/GlucoseHistoryTable'
 import { GlucosePetSelector } from '../components/glucose/GlucosePetSelector'
 import { useGlucoseAnalytics, useGlucoseHistory, useGlucoseRange } from '../hooks/useGlucose'
 import { usePets } from '../hooks/usePets'
-import { formatDateTimeForInput, subtractDays, toApiDateTime } from '../utils/dateTime'
-
-const dashboardHistoryPageSize = 5
-const petPageSize = 100
-
-function buildRange(days: number) {
-  const endDate = new Date()
-  const startDate = subtractDays(endDate, days)
-
-  return {
-    startTime: toApiDateTime(formatDateTimeForInput(startDate)),
-    endTime: toApiDateTime(formatDateTimeForInput(endDate)),
-  }
-}
-
-const rangeOptions = [7, 14, 30]
 
 export function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [historyPage, setHistoryPage] = useState(0)
   const petsQuery = usePets({
     page: 0,
-    size: petPageSize,
+    size: defaultPetPageSize,
     sortBy: 'name',
     direction: 'ASC',
   })
 
-  const selectedDays = rangeOptions.includes(Number(searchParams.get('days'))) ? Number(searchParams.get('days')) : 7
+  const selectedDays = glucoseRangeOptions.includes(Number(searchParams.get('days')) as (typeof glucoseRangeOptions)[number])
+    ? Number(searchParams.get('days'))
+    : 7
   const selectedPetId = Number(searchParams.get('petId'))
   const pets = useMemo(() => petsQuery.data?.content ?? [], [petsQuery.data?.content])
   const effectivePetId = pets.some((pet) => pet.id === selectedPetId) ? selectedPetId : (pets[0]?.id ?? Number.NaN)
   const selectedPet = pets.find((pet) => pet.id === effectivePetId)
-  const range = useMemo(() => buildRange(selectedDays), [selectedDays])
+  const range = useMemo(() => buildGlucoseRange(selectedDays), [selectedDays])
   const glucoseRangeQuery = useGlucoseRange(effectivePetId, range)
   const glucoseAnalyticsQuery = useGlucoseAnalytics(effectivePetId, range)
   const glucoseHistoryQuery = useGlucoseHistory(effectivePetId, {
@@ -115,7 +107,7 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          {rangeOptions.map((days) => (
+          {glucoseRangeOptions.map((days) => (
             <button
               key={days}
               type="button"

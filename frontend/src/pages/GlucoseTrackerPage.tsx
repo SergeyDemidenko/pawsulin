@@ -2,28 +2,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { GlucoseAnalyticsCards } from '../components/glucose/GlucoseAnalyticsCards'
 import { GlucoseCharts } from '../components/glucose/GlucoseCharts'
+import {
+  buildGlucoseRange,
+  defaultPetPageSize,
+  glucoseHistoryPageSize,
+  glucoseRangeOptions,
+} from '../components/glucose/glucoseConfig'
 import { GlucoseEntryForm } from '../components/glucose/GlucoseEntryForm'
 import { GlucoseHistoryTable } from '../components/glucose/GlucoseHistoryTable'
 import { GlucosePetSelector } from '../components/glucose/GlucosePetSelector'
 import { useCreateGlucoseReadingMutation, useGlucoseAnalytics, useGlucoseHistory, useGlucoseRange } from '../hooks/useGlucose'
 import { usePets } from '../hooks/usePets'
 import { extractApiErrorMessage } from '../utils/apiError'
-import { formatDateTimeForInput, subtractDays, toApiDateTime } from '../utils/dateTime'
-
-const historyPageSize = 8
-const petPageSize = 100
-
-function buildRange(days: number) {
-  const endDate = new Date()
-  const startDate = subtractDays(endDate, days)
-
-  return {
-    startTime: toApiDateTime(formatDateTimeForInput(startDate)),
-    endTime: toApiDateTime(formatDateTimeForInput(endDate)),
-  }
-}
-
-const rangeOptions = [7, 14, 30]
 
 export function GlucoseTrackerPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -31,21 +21,23 @@ export function GlucoseTrackerPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const petsQuery = usePets({
     page: 0,
-    size: petPageSize,
+    size: defaultPetPageSize,
     sortBy: 'name',
     direction: 'ASC',
   })
 
-  const selectedDays = rangeOptions.includes(Number(searchParams.get('days'))) ? Number(searchParams.get('days')) : 14
+  const selectedDays = glucoseRangeOptions.includes(Number(searchParams.get('days')) as (typeof glucoseRangeOptions)[number])
+    ? Number(searchParams.get('days'))
+    : 14
   const selectedPetId = Number(searchParams.get('petId'))
   const pets = useMemo(() => petsQuery.data?.content ?? [], [petsQuery.data?.content])
   const effectivePetId = pets.some((pet) => pet.id === selectedPetId) ? selectedPetId : (pets[0]?.id ?? Number.NaN)
   const selectedPet = pets.find((pet) => pet.id === effectivePetId)
-  const range = useMemo(() => buildRange(selectedDays), [selectedDays])
+  const range = useMemo(() => buildGlucoseRange(selectedDays), [selectedDays])
   const createGlucoseReadingMutation = useCreateGlucoseReadingMutation(effectivePetId)
   const glucoseHistoryQuery = useGlucoseHistory(effectivePetId, {
     page: historyPage,
-    size: historyPageSize,
+    size: glucoseHistoryPageSize,
     sortBy: 'readingTime',
     direction: 'DESC',
   })
@@ -136,7 +128,7 @@ export function GlucoseTrackerPage() {
             <p className="mt-1 text-sm text-slate-600">Switch the period to compare recent readings and the current range distribution.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {rangeOptions.map((days) => (
+            {glucoseRangeOptions.map((days) => (
               <button
                 key={days}
                 type="button"

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { CreateGlucoseReadingRequest } from '../../types/glucose'
 import { formatDateTimeForInput, toApiDateTime } from '../../utils/dateTime'
+import { minimumGlucoseValue } from './glucoseConfig'
 
 interface GlucoseEntryFormProps {
   petName: string
@@ -14,8 +15,6 @@ interface GlucoseFormState {
   readingTime: string
   notes: string
 }
-
-const minimumGlucoseValue = 20
 
 function createInitialState(): GlucoseFormState {
   return {
