@@ -40,6 +40,9 @@ public class GlucoseAlert {
     @Column(name = "is_enabled", nullable = false)
     private Boolean isEnabled;
 
+    @Column(name = "description", length = 500)
+    private String description;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
