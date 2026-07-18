@@ -7,6 +7,7 @@ import com.pawsulin.entity.GlucoseAlert;
 import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.GlucoseAlertMapper;
 import com.pawsulin.repository.GlucoseAlertRepository;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
@@ -43,6 +44,9 @@ class GlucoseAlertServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private GlucoseAlertMapper glucoseAlertMapper;
 
     @InjectMocks
     private GlucoseAlertService glucoseAlertService;
@@ -95,6 +99,23 @@ class GlucoseAlertServiceTest {
                 .isEnabled(true)
                 .description("High glucose alert")
                 .build();
+
+        lenient().when(glucoseAlertMapper.toDTO(any(GlucoseAlert.class)))
+                .thenAnswer(invocation -> {
+                    GlucoseAlert alert = invocation.getArgument(0);
+                    return GlucoseAlertDTO.builder()
+                            .id(alert.getId())
+                            .petId(alert.getPet() != null ? alert.getPet().getId() : null)
+                            .userId(alert.getUser() != null ? alert.getUser().getId() : null)
+                            .alertType(alert.getAlertType())
+                            .lowThreshold(alert.getLowThreshold())
+                            .highThreshold(alert.getHighThreshold())
+                            .isEnabled(alert.getIsEnabled())
+                            .description(alert.getDescription())
+                            .createdAt(alert.getCreatedAt())
+                            .updatedAt(alert.getUpdatedAt())
+                            .build();
+                });
     }
 
     @Test

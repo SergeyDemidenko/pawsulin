@@ -5,6 +5,7 @@ import com.pawsulin.dto.PetDTO;
 import com.pawsulin.dto.UpdatePetRequest;
 import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
+import com.pawsulin.mapper.PetMapper;
 import com.pawsulin.exception.ResourceNotFoundException;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
@@ -39,6 +40,9 @@ class PetServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PetMapper petMapper;
+
     @InjectMocks
     private PetService petService;
 
@@ -46,6 +50,7 @@ class PetServiceTest {
     private Pet testPet;
     private CreatePetRequest createRequest;
     private UpdatePetRequest updateRequest;
+    private PetDTO testPetDTO;
 
     @BeforeEach
     void setUp() {
@@ -85,6 +90,21 @@ class PetServiceTest {
                 .name("Fluffy Updated")
                 .ageYears(4)
                 .build();
+
+        testPetDTO = PetDTO.builder()
+                .id(1L)
+                .userId(1L)
+                .name("Fluffy")
+                .species("Cat")
+                .breed("Persian")
+                .ageYears(3)
+                .weightKg(new BigDecimal("4.5"))
+                .diabetesType("Type 1")
+                .medicalNotes("Requires insulin twice daily")
+                .isActive(true)
+                .build();
+
+        lenient().when(petMapper.toDTO(any(Pet.class))).thenReturn(testPetDTO);
     }
 
     @Test

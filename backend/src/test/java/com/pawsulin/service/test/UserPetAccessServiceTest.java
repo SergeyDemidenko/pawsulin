@@ -8,6 +8,7 @@ import com.pawsulin.entity.UserPetAccess;
 import com.pawsulin.exception.AccessDeniedException;
 import com.pawsulin.exception.DuplicateResourceException;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.UserPetAccessMapper;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserPetAccessRepository;
 import com.pawsulin.repository.UserRepository;
@@ -44,6 +45,9 @@ class UserPetAccessServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserPetAccessMapper userPetAccessMapper;
 
     @InjectMocks
     private UserPetAccessService userPetAccessService;
@@ -103,6 +107,19 @@ class UserPetAccessServiceTest {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+
+        lenient().when(userPetAccessMapper.toDTO(any(UserPetAccess.class)))
+                .thenAnswer(invocation -> {
+                    UserPetAccess access = invocation.getArgument(0);
+                    return UserPetAccessDTO.builder()
+                            .id(access.getId())
+                            .userId(access.getUser() != null ? access.getUser().getId() : null)
+                            .petId(access.getPet() != null ? access.getPet().getId() : null)
+                            .accessLevel(access.getAccessLevel())
+                            .createdAt(access.getCreatedAt())
+                            .updatedAt(access.getUpdatedAt())
+                            .build();
+                });
     }
 
     // ---- grantAccess tests ----

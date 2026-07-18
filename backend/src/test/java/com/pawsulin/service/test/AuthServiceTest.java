@@ -6,6 +6,7 @@ import com.pawsulin.dto.auth.RegisterRequest;
 import com.pawsulin.dto.auth.AuthResponse;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.DuplicateResourceException;
+import com.pawsulin.mapper.UserMapper;
 import com.pawsulin.repository.UserRepository;
 import com.pawsulin.security.JwtTokenProvider;
 import com.pawsulin.service.AuthService;
@@ -42,6 +43,9 @@ class AuthServiceTest {
     @Mock
     private JwtTokenProvider jwtTokenProvider;
 
+    @Mock
+    private UserMapper userMapper;
+
     @InjectMocks
     private AuthService authService;
 
@@ -72,6 +76,21 @@ class AuthServiceTest {
                 .role(User.UserRole.PET_OWNER)
                 .isActive(true)
                 .build();
+
+        lenient().when(userMapper.toDTO(any(User.class)))
+                .thenAnswer(invocation -> {
+                    User user = invocation.getArgument(0);
+                    return UserDTO.builder()
+                            .id(user.getId())
+                            .email(user.getEmail())
+                            .firstName(user.getFirstName())
+                            .lastName(user.getLastName())
+                            .role(user.getRole() != null ? user.getRole().name() : null)
+                            .createdAt(user.getCreatedAt())
+                            .updatedAt(user.getUpdatedAt())
+                            .isActive(user.getIsActive())
+                            .build();
+                });
     }
 
     @Test

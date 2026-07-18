@@ -8,6 +8,7 @@ import com.pawsulin.entity.UserPetAccess;
 import com.pawsulin.exception.AccessDeniedException;
 import com.pawsulin.exception.DuplicateResourceException;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.UserPetAccessMapper;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserPetAccessRepository;
 import com.pawsulin.repository.UserRepository;
@@ -38,6 +39,9 @@ public class UserPetAccessService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserPetAccessMapper userPetAccessMapper;
 
     /**
      * Grants access to a pet for another user.
@@ -97,7 +101,7 @@ public class UserPetAccessService {
         access = userPetAccessRepository.save(access);
         log.info("Access granted: user {} granted {} access to pet {} for user {}",
                 userId, request.getAccessLevel(), petId, targetUserId);
-        return mapToUserPetAccessDTO(access);
+        return userPetAccessMapper.toDTO(access);
     }
 
     /**
@@ -123,7 +127,7 @@ public class UserPetAccessService {
 
         Page<UserPetAccess> accessPage = userPetAccessRepository.findByPetId(petId, pageable);
         log.info("Retrieved {} access records for pet: {}", accessPage.getTotalElements(), petId);
-        return accessPage.map(this::mapToUserPetAccessDTO);
+        return accessPage.map(userPetAccessMapper::toDTO);
     }
 
     /**
@@ -137,7 +141,7 @@ public class UserPetAccessService {
     public Page<UserPetAccessDTO> getAccessByUserId(Long userId, Pageable pageable) {
         Page<UserPetAccess> accessPage = userPetAccessRepository.findByUserId(userId, pageable);
         log.info("Retrieved {} access records for user: {}", accessPage.getTotalElements(), userId);
-        return accessPage.map(this::mapToUserPetAccessDTO);
+        return accessPage.map(userPetAccessMapper::toDTO);
     }
 
     /**
@@ -161,7 +165,7 @@ public class UserPetAccessService {
                 .orElseThrow(() -> new AccessDeniedException(
                         "User does not have access to pet with id: " + access.getPet().getId()));
 
-        return mapToUserPetAccessDTO(access);
+        return userPetAccessMapper.toDTO(access);
     }
 
     /**
@@ -206,7 +210,7 @@ public class UserPetAccessService {
         access.setAccessLevel(request.getAccessLevel());
         access = userPetAccessRepository.save(access);
         log.info("Access level updated: record {} set to {} by user {}", accessId, request.getAccessLevel(), userId);
-        return mapToUserPetAccessDTO(access);
+        return userPetAccessMapper.toDTO(access);
     }
 
     /**
@@ -272,20 +276,4 @@ public class UserPetAccessService {
                 .map(UserPetAccess::getAccessLevel);
     }
 
-    /**
-     * Maps a {@link UserPetAccess} entity to a {@link UserPetAccessDTO}.
-     *
-     * @param access the entity to map
-     * @return the mapped DTO
-     */
-    private UserPetAccessDTO mapToUserPetAccessDTO(UserPetAccess access) {
-        return UserPetAccessDTO.builder()
-                .id(access.getId())
-                .userId(access.getUser().getId())
-                .petId(access.getPet().getId())
-                .accessLevel(access.getAccessLevel())
-                .createdAt(access.getCreatedAt())
-                .updatedAt(access.getUpdatedAt())
-                .build();
-    }
 }

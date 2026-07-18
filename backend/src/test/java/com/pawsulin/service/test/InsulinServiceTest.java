@@ -7,6 +7,7 @@ import com.pawsulin.entity.InsulinLog;
 import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.InsulinLogMapper;
 import com.pawsulin.repository.InsulinLogRepository;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
@@ -44,6 +45,9 @@ class InsulinServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private InsulinLogMapper insulinLogMapper;
 
     @InjectMocks
     private InsulinService insulinService;
@@ -97,6 +101,24 @@ class InsulinServiceTest {
                 .expirationDate(LocalDate.now().plusMonths(6))
                 .notes("Morning dose")
                 .build();
+
+        lenient().when(insulinLogMapper.toDTO(any(InsulinLog.class)))
+                .thenAnswer(invocation -> {
+                    InsulinLog log = invocation.getArgument(0);
+                    return InsulinLogDTO.builder()
+                            .id(log.getId())
+                            .petId(log.getPet() != null ? log.getPet().getId() : null)
+                            .userId(log.getUser() != null ? log.getUser().getId() : null)
+                            .insulinType(log.getInsulinType())
+                            .amountUnits(log.getAmountUnits())
+                            .injectionTime(log.getInjectionTime())
+                            .batchNumber(log.getBatchNumber())
+                            .expirationDate(log.getExpirationDate())
+                            .notes(log.getNotes())
+                            .createdAt(log.getCreatedAt())
+                            .updatedAt(log.getUpdatedAt())
+                            .build();
+                });
     }
 
     @Test

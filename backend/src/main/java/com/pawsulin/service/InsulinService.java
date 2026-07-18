@@ -7,6 +7,7 @@ import com.pawsulin.entity.InsulinLog;
 import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.InsulinLogMapper;
 import com.pawsulin.repository.InsulinLogRepository;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
@@ -38,6 +39,9 @@ public class InsulinService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private InsulinLogMapper insulinLogMapper;
 
     /**
      * Creates a new insulin log entry for a pet.
@@ -74,7 +78,7 @@ public class InsulinService {
 
         insulinLog = insulinLogRepository.save(insulinLog);
         log.info("Insulin log created successfully: {} for pet: {}", insulinLog.getId(), petId);
-        return mapToInsulinLogDTO(insulinLog);
+        return insulinLogMapper.toDTO(insulinLog);
     }
 
     /**
@@ -95,7 +99,7 @@ public class InsulinService {
             throw new ResourceNotFoundException("Insulin log not found or unauthorized access");
         }
 
-        return mapToInsulinLogDTO(insulinLog);
+        return insulinLogMapper.toDTO(insulinLog);
     }
 
     /**
@@ -119,7 +123,7 @@ public class InsulinService {
 
         Page<InsulinLog> logs = insulinLogRepository.findByPetIdAndIsActiveTrue(petId, pageable);
         log.info("Retrieved {} insulin logs for pet: {}", logs.getTotalElements(), petId);
-        return logs.map(this::mapToInsulinLogDTO);
+        return logs.map(insulinLogMapper::toDTO);
     }
 
     /**
@@ -147,7 +151,7 @@ public class InsulinService {
         log.info("Retrieved {} insulin logs for pet: {} between {} and {}", logs.size(), petId, startTime, endTime);
         return logs.stream()
                 .filter(InsulinLog::getIsActive)
-                .map(this::mapToInsulinLogDTO)
+                .map(insulinLogMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -190,7 +194,7 @@ public class InsulinService {
 
         insulinLog = insulinLogRepository.save(insulinLog);
         log.info("Insulin log updated successfully: {} for user: {}", logId, userId);
-        return mapToInsulinLogDTO(insulinLog);
+        return insulinLogMapper.toDTO(insulinLog);
     }
 
     /**
@@ -214,25 +218,4 @@ public class InsulinService {
         log.info("Insulin log deleted (soft delete) successfully: {} for user: {}", logId, userId);
     }
 
-    /**
-     * Maps an {@link InsulinLog} entity to an {@link InsulinLogDTO}.
-     *
-     * @param log the entity to map
-     * @return the mapped DTO
-     */
-    private InsulinLogDTO mapToInsulinLogDTO(InsulinLog log) {
-        return InsulinLogDTO.builder()
-                .id(log.getId())
-                .petId(log.getPet().getId())
-                .userId(log.getUser().getId())
-                .insulinType(log.getInsulinType())
-                .amountUnits(log.getAmountUnits())
-                .injectionTime(log.getInjectionTime())
-                .batchNumber(log.getBatchNumber())
-                .expirationDate(log.getExpirationDate())
-                .notes(log.getNotes())
-                .createdAt(log.getCreatedAt())
-                .updatedAt(log.getUpdatedAt())
-                .build();
-    }
 }
