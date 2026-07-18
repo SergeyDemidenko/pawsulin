@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { ProtectedRoute } from './ProtectedRoute'
 import { PublicOnlyRoute } from './PublicOnlyRoute'
 import { AppLayout } from '../components/layout/AppLayout'
+import { NotFoundPage } from '../pages/NotFoundPage'
 
 const DashboardPage = lazy(async () => import('../pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const GlucoseTrackerPage = lazy(async () =>
@@ -12,7 +13,6 @@ const InsulinTrackerPage = lazy(async () =>
   import('../pages/InsulinTrackerPage').then((module) => ({ default: module.InsulinTrackerPage })),
 )
 const LoginPage = lazy(async () => import('../pages/LoginPage').then((module) => ({ default: module.LoginPage })))
-const NotFoundPage = lazy(async () => import('../pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
 const PetDetailPage = lazy(async () => import('../pages/PetDetailPage').then((module) => ({ default: module.PetDetailPage })))
 const PetsPage = lazy(async () => import('../pages/PetsPage').then((module) => ({ default: module.PetsPage })))
 const RegisterPage = lazy(async () => import('../pages/RegisterPage').then((module) => ({ default: module.RegisterPage })))
