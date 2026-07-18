@@ -11,6 +11,7 @@ const pageSize = 5
 export function PetsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [createFormKey, setCreateFormKey] = useState(0)
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10)
   const currentPage = Number.isNaN(pageParam) || pageParam < 1 ? 0 : pageParam - 1
   const petsQuery = usePets({
@@ -26,6 +27,7 @@ export function PetsPage() {
 
     try {
       await createPetMutation.mutateAsync(request)
+      setCreateFormKey((currentKey) => currentKey + 1)
       setSearchParams((current) => {
         const next = new URLSearchParams(current)
         next.set('page', '1')
@@ -49,6 +51,7 @@ export function PetsPage() {
       </div>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <PetForm
+          key={createFormKey}
           includeSpeciesField
           submitLabel="Add pet"
           isSubmitting={createPetMutation.isPending}
