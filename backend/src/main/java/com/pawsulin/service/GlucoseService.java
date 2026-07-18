@@ -8,6 +8,7 @@ import com.pawsulin.entity.GlucoseReading;
 import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.GlucoseReadingMapper;
 import com.pawsulin.repository.GlucoseReadingRepository;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
@@ -36,6 +37,9 @@ public class GlucoseService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private GlucoseReadingMapper glucoseReadingMapper;
+
     public GlucoseReadingDTO createGlucoseReading(Long petId, Long userId, CreateGlucoseReadingRequest request) {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pet not found with id: " + petId));
@@ -62,7 +66,7 @@ public class GlucoseService {
 
         reading = glucoseReadingRepository.save(reading);
         log.info("Glucose reading created successfully: {} for pet: {}", reading.getId(), petId);
-        return mapToGlucoseReadingDTO(reading);
+        return glucoseReadingMapper.toDTO(reading);
     }
 
     @Transactional(readOnly = true)
@@ -75,7 +79,7 @@ public class GlucoseService {
             throw new ResourceNotFoundException("Glucose reading not found or unauthorized access");
         }
 
-        return mapToGlucoseReadingDTO(reading);
+        return glucoseReadingMapper.toDTO(reading);
     }
 
     @Transactional(readOnly = true)
@@ -90,7 +94,7 @@ public class GlucoseService {
 
         Page<GlucoseReading> readings = glucoseReadingRepository.findByPetIdAndIsActiveTrue(petId, pageable);
         log.info("Retrieved {} glucose readings for pet: {}", readings.getTotalElements(), petId);
-        return readings.map(this::mapToGlucoseReadingDTO);
+        return readings.map(glucoseReadingMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -107,7 +111,7 @@ public class GlucoseService {
         log.info("Retrieved {} glucose readings for pet: {} between {} and {}", readings.size(), petId, startTime, endTime);
         return readings.stream()
                 .filter(GlucoseReading::getIsActive)
-                .map(this::mapToGlucoseReadingDTO)
+                .map(glucoseReadingMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -130,7 +134,7 @@ public class GlucoseService {
 
         reading = glucoseReadingRepository.save(reading);
         log.info("Glucose reading updated successfully: {} for user: {}", readingId, userId);
-        return mapToGlucoseReadingDTO(reading);
+        return glucoseReadingMapper.toDTO(reading);
     }
 
     public void deleteGlucoseReading(Long readingId, Long userId) {
@@ -230,17 +234,4 @@ public class GlucoseService {
         }
     }
 
-    private GlucoseReadingDTO mapToGlucoseReadingDTO(GlucoseReading reading) {
-        return GlucoseReadingDTO.builder()
-                .id(reading.getId())
-                .petId(reading.getPet().getId())
-                .userId(reading.getUser().getId())
-                .glucoseValue(reading.getGlucoseValue())
-                .glucoseLevel(reading.getGlucoseLevel().name())
-                .readingTime(reading.getReadingTime())
-                .notes(reading.getNotes())
-                .createdAt(reading.getCreatedAt())
-                .updatedAt(reading.getUpdatedAt())
-                .build();
-    }
 }

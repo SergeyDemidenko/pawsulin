@@ -7,6 +7,7 @@ import com.pawsulin.entity.GlucoseAlert;
 import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.GlucoseAlertMapper;
 import com.pawsulin.repository.GlucoseAlertRepository;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
@@ -38,6 +39,9 @@ public class GlucoseAlertService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private GlucoseAlertMapper glucoseAlertMapper;
 
     /**
      * Creates a new glucose alert for a pet.
@@ -72,7 +76,7 @@ public class GlucoseAlertService {
 
         alert = glucoseAlertRepository.save(alert);
         log.info("Glucose alert created successfully: {} for pet: {}", alert.getId(), petId);
-        return mapToGlucoseAlertDTO(alert);
+        return glucoseAlertMapper.toDTO(alert);
     }
 
     /**
@@ -93,7 +97,7 @@ public class GlucoseAlertService {
             throw new ResourceNotFoundException("Glucose alert not found or unauthorized access");
         }
 
-        return mapToGlucoseAlertDTO(alert);
+        return glucoseAlertMapper.toDTO(alert);
     }
 
     /**
@@ -117,7 +121,7 @@ public class GlucoseAlertService {
 
         Page<GlucoseAlert> alerts = glucoseAlertRepository.findByPetIdAndIsEnabledTrue(petId, pageable);
         log.info("Retrieved {} glucose alerts for pet: {}", alerts.getTotalElements(), petId);
-        return alerts.map(this::mapToGlucoseAlertDTO);
+        return alerts.map(glucoseAlertMapper::toDTO);
     }
 
     /**
@@ -131,7 +135,7 @@ public class GlucoseAlertService {
     public Page<GlucoseAlertDTO> getAlertsByUserId(Long userId, Pageable pageable) {
         Page<GlucoseAlert> alerts = glucoseAlertRepository.findByUserIdAndIsEnabledTrue(userId, pageable);
         log.info("Retrieved {} glucose alerts for user: {}", alerts.getTotalElements(), userId);
-        return alerts.map(this::mapToGlucoseAlertDTO);
+        return alerts.map(glucoseAlertMapper::toDTO);
     }
 
     /**
@@ -153,7 +157,7 @@ public class GlucoseAlertService {
         }
 
         return glucoseAlertRepository.findByPetIdAndIsEnabledTrue(petId).stream()
-                .map(this::mapToGlucoseAlertDTO)
+                .map(glucoseAlertMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -182,7 +186,7 @@ public class GlucoseAlertService {
 
         List<GlucoseAlertDTO> triggered = enabledAlerts.stream()
                 .filter(alert -> isAlertTriggered(alert, value))
-                .map(this::mapToGlucoseAlertDTO)
+                .map(glucoseAlertMapper::toDTO)
                 .collect(Collectors.toList());
 
         log.info("Threshold check for pet: {}, value: {}, triggered: {} alerts",
@@ -226,7 +230,7 @@ public class GlucoseAlertService {
 
         alert = glucoseAlertRepository.save(alert);
         log.info("Glucose alert updated successfully: {} for user: {}", alertId, userId);
-        return mapToGlucoseAlertDTO(alert);
+        return glucoseAlertMapper.toDTO(alert);
     }
 
     /**
@@ -275,24 +279,4 @@ public class GlucoseAlertService {
         }
     }
 
-    /**
-     * Maps a {@link GlucoseAlert} entity to a {@link GlucoseAlertDTO}.
-     *
-     * @param alert the entity to map
-     * @return the mapped DTO
-     */
-    private GlucoseAlertDTO mapToGlucoseAlertDTO(GlucoseAlert alert) {
-        return GlucoseAlertDTO.builder()
-                .id(alert.getId())
-                .petId(alert.getPet().getId())
-                .userId(alert.getUser().getId())
-                .alertType(alert.getAlertType())
-                .lowThreshold(alert.getLowThreshold())
-                .highThreshold(alert.getHighThreshold())
-                .isEnabled(alert.getIsEnabled())
-                .description(alert.getDescription())
-                .createdAt(alert.getCreatedAt())
-                .updatedAt(alert.getUpdatedAt())
-                .build();
-    }
 }

@@ -6,6 +6,7 @@ import com.pawsulin.dto.auth.RegisterRequest;
 import com.pawsulin.dto.auth.AuthResponse;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.DuplicateResourceException;
+import com.pawsulin.mapper.UserMapper;
 import com.pawsulin.repository.UserRepository;
 import com.pawsulin.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,9 @@ public class AuthService {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    private UserMapper userMapper;
+
     public UserDTO register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already in use: " + request.getEmail());
@@ -51,7 +55,7 @@ public class AuthService {
         user = userRepository.save(user);
         log.info("User registered successfully: {}", user.getEmail());
 
-        return mapToUserDTO(user);
+        return userMapper.toDTO(user);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -76,7 +80,7 @@ public class AuthService {
     public UserDTO getCurrentUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return mapToUserDTO(user);
+        return userMapper.toDTO(user);
     }
 
     public UserDTO updateProfile(Long userId, UserDTO updateRequest) {
@@ -93,19 +97,6 @@ public class AuthService {
         user = userRepository.save(user);
         log.info("User profile updated: {}", user.getEmail());
 
-        return mapToUserDTO(user);
-    }
-
-    private UserDTO mapToUserDTO(User user) {
-        return UserDTO.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .role(user.getRole().name())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .isActive(user.getIsActive())
-                .build();
+        return userMapper.toDTO(user);
     }
 }

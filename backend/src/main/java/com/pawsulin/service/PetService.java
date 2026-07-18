@@ -6,6 +6,7 @@ import com.pawsulin.dto.UpdatePetRequest;
 import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.PetMapper;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,9 @@ public class PetService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PetMapper petMapper;
+
     public PetDTO createPet(Long userId, CreatePetRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -47,7 +51,7 @@ public class PetService {
 
         pet = petRepository.save(pet);
         log.info("Pet created successfully: {} for user: {}", pet.getId(), userId);
-        return mapToPetDTO(pet);
+        return petMapper.toDTO(pet);
     }
 
     @Transactional(readOnly = true)
@@ -60,7 +64,7 @@ public class PetService {
             throw new ResourceNotFoundException("Pet not found or unauthorized access");
         }
 
-        return mapToPetDTO(pet);
+        return petMapper.toDTO(pet);
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +74,7 @@ public class PetService {
 
         Page<Pet> pets = petRepository.findByUserIdAndIsActiveTrue(userId, pageable);
         log.info("Retrieved {} pets for user: {}", pets.getTotalElements(), userId);
-        return pets.map(this::mapToPetDTO);
+        return pets.map(petMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +86,7 @@ public class PetService {
         log.info("Retrieved {} pets for user: {}", pets.size(), userId);
         return pets.stream()
                 .filter(Pet::getIsActive)
-                .map(this::mapToPetDTO)
+                .map(petMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -116,7 +120,7 @@ public class PetService {
 
         pet = petRepository.save(pet);
         log.info("Pet updated successfully: {} for user: {}", petId, userId);
-        return mapToPetDTO(pet);
+        return petMapper.toDTO(pet);
     }
 
     public void deletePet(Long petId, Long userId) {
@@ -133,20 +137,4 @@ public class PetService {
         log.info("Pet deleted (soft delete) successfully: {} for user: {}", petId, userId);
     }
 
-    private PetDTO mapToPetDTO(Pet pet) {
-        return PetDTO.builder()
-                .id(pet.getId())
-                .userId(pet.getUser().getId())
-                .name(pet.getName())
-                .species(pet.getSpecies())
-                .breed(pet.getBreed())
-                .ageYears(pet.getAgeYears())
-                .weightKg(pet.getWeightKg())
-                .diabetesType(pet.getDiabetesType())
-                .medicalNotes(pet.getMedicalNotes())
-                .createdAt(pet.getCreatedAt())
-                .updatedAt(pet.getUpdatedAt())
-                .isActive(pet.getIsActive())
-                .build();
-    }
 }

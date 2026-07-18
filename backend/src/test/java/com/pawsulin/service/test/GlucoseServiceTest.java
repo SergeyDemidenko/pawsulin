@@ -8,6 +8,7 @@ import com.pawsulin.entity.GlucoseReading;
 import com.pawsulin.entity.Pet;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.ResourceNotFoundException;
+import com.pawsulin.mapper.GlucoseReadingMapper;
 import com.pawsulin.repository.GlucoseReadingRepository;
 import com.pawsulin.repository.PetRepository;
 import com.pawsulin.repository.UserRepository;
@@ -45,6 +46,9 @@ class GlucoseServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private GlucoseReadingMapper glucoseReadingMapper;
 
     @InjectMocks
     private GlucoseService glucoseService;
@@ -93,6 +97,22 @@ class GlucoseServiceTest {
                 .readingTime(LocalDateTime.now())
                 .notes("Morning reading")
                 .build();
+
+        lenient().when(glucoseReadingMapper.toDTO(any(GlucoseReading.class)))
+                .thenAnswer(invocation -> {
+                    GlucoseReading reading = invocation.getArgument(0);
+                    return GlucoseReadingDTO.builder()
+                            .id(reading.getId())
+                            .petId(reading.getPet() != null ? reading.getPet().getId() : null)
+                            .userId(reading.getUser() != null ? reading.getUser().getId() : null)
+                            .glucoseValue(reading.getGlucoseValue())
+                            .glucoseLevel(reading.getGlucoseLevel() != null ? reading.getGlucoseLevel().name() : null)
+                            .readingTime(reading.getReadingTime())
+                            .notes(reading.getNotes())
+                            .createdAt(reading.getCreatedAt())
+                            .updatedAt(reading.getUpdatedAt())
+                            .build();
+                });
     }
 
     @Test
