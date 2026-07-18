@@ -64,8 +64,8 @@ jobs:
             set -e
             cd ~/pawsulin
 
-            # Log in to GHCR
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            # Log in to GHCR using a PAT with package:read scope
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
               -u "${{ github.actor }}" --password-stdin
 
             # Pull latest images
@@ -91,8 +91,9 @@ jobs:
         run: |
           ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" bash -s <<'ENDSSH'
             set -e
+            HEALTH_URL="${{ vars.BACKEND_HEALTH_URL || 'http://localhost:8080/actuator/health' }}"
             RETRIES=10
-            until curl -sf http://localhost:8080/actuator/health | grep -q '"status":"UP"'; do
+            until curl -sf "$HEALTH_URL" | grep -q '"status":"UP"'; do
               RETRIES=$((RETRIES - 1))
               if [ "$RETRIES" -eq 0 ]; then
                 echo "Health check failed after 10 attempts."
