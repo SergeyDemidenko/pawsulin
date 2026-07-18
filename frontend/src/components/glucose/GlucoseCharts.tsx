@@ -65,7 +65,7 @@ export function GlucoseCharts({ readings, analytics, isLoading }: GlucoseChartsP
               <ReferenceArea y1={70} y2={180} fill="#d1fae5" fillOpacity={0.45} />
               <XAxis dataKey="label" minTickGap={32} />
               <YAxis unit=" mg/dL" width={84} />
-              <Tooltip formatter={(value: number) => [`${value} mg/dL`, 'Glucose']} />
+              <Tooltip formatter={(value) => [`${value ?? '—'} mg/dL`, 'Glucose']} />
               <Legend />
               <Line
                 type="monotone"
@@ -91,7 +91,7 @@ export function GlucoseCharts({ readings, analytics, isLoading }: GlucoseChartsP
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="level" tickFormatter={(value: GlucoseLevel) => formatGlucoseLevel(value)} />
               <YAxis allowDecimals={false} />
-              <Tooltip formatter={(value: number) => [value, 'Readings']} />
+              <Tooltip formatter={(value) => [value ?? '—', 'Readings']} />
               <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                 {distributionData.map((entry) => (
                   <Cell key={entry.level} fill={glucoseLevelColors[entry.level]} />

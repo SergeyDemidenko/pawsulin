@@ -35,7 +35,7 @@ export function DashboardPage() {
 
   const selectedDays = rangeOptions.includes(Number(searchParams.get('days'))) ? Number(searchParams.get('days')) : 7
   const selectedPetId = Number(searchParams.get('petId'))
-  const pets = petsQuery.data?.content ?? []
+  const pets = useMemo(() => petsQuery.data?.content ?? [], [petsQuery.data?.content])
   const effectivePetId = pets.some((pet) => pet.id === selectedPetId) ? selectedPetId : (pets[0]?.id ?? Number.NaN)
   const selectedPet = pets.find((pet) => pet.id === effectivePetId)
   const range = useMemo(() => buildRange(selectedDays), [selectedDays])
