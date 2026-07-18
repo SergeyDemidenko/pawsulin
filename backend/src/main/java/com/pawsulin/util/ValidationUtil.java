@@ -7,7 +7,7 @@ public class ValidationUtil {
     private ValidationUtil() {
     }
 
-    public static <T> T requireNonNull(T value, String fieldName) {
+    public static <T> T requireFieldNonNull(T value, String fieldName) {
         if (value == null) {
             throw new InvalidRequestException(fieldName + " must not be null");
         }

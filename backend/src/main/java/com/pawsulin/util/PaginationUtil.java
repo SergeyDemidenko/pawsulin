@@ -16,7 +16,7 @@ public class PaginationUtil {
         int validatedPage = ValidationUtil.requireNonNegative(page, "page");
         int validatedSize = ValidationUtil.requirePositive(size, "size");
         String validatedSortBy = ValidationUtil.requireHasText(sortBy, "sortBy");
-        Sort.Direction validatedDirection = direction == null ? Sort.Direction.DESC : direction;
+        Sort.Direction validatedDirection = ValidationUtil.requireFieldNonNull(direction, "direction");
         if (validatedSize > MAX_PAGE_SIZE) {
             throw new InvalidRequestException("size must be less than or equal to " + MAX_PAGE_SIZE);
         }

@@ -10,8 +10,8 @@ public class DateTimeUtil {
     }
 
     public static DateTimeRange validateAndCreateRange(LocalDateTime startTime, LocalDateTime endTime) {
-        ValidationUtil.requireNonNull(startTime, "startTime");
-        ValidationUtil.requireNonNull(endTime, "endTime");
+        ValidationUtil.requireFieldNonNull(startTime, "startTime");
+        ValidationUtil.requireFieldNonNull(endTime, "endTime");
         if (startTime.isAfter(endTime)) {
             throw new InvalidRequestException("startTime must not be after endTime");
         }
