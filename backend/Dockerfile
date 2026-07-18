@@ -9,6 +9,7 @@ COPY backend/build.gradle ./backend/build.gradle
 COPY backend/src ./backend/src
 
 RUN ./gradlew :backend:bootJar --no-daemon -x test
+RUN cp "$(find /app/backend/build/libs -name '*.jar' ! -name '*-plain.jar')" /app/app.jar
 
 # --- Runtime stage ---
 FROM eclipse-temurin:17-jre-alpine
@@ -17,8 +18,7 @@ WORKDIR /app
 RUN apk add --no-cache curl \
     && addgroup -S spring && adduser -S spring -G spring
 
-RUN find /app/backend/build/libs -name "*.jar" ! -name "*-plain.jar" \
-    | xargs -I{} cp {} app.jar
+COPY --from=build /app/app.jar /app/app.jar
 
 RUN chown spring:spring app.jar
 USER spring
