@@ -7,6 +7,7 @@ import { GlucoseTrackerPage } from '../pages/GlucoseTrackerPage'
 import { InsulinTrackerPage } from '../pages/InsulinTrackerPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { PetDetailPage } from '../pages/PetDetailPage'
 import { PetsPage } from '../pages/PetsPage'
 import { RegisterPage } from '../pages/RegisterPage'
 
@@ -22,6 +23,7 @@ export function AppRouter() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/pets" element={<PetsPage />} />
+          <Route path="/pets/:petId" element={<PetDetailPage />} />
           <Route path="/glucose" element={<GlucoseTrackerPage />} />
           <Route path="/insulin" element={<InsulinTrackerPage />} />
           <Route path="/home" element={<Navigate to="/dashboard" replace />} />
