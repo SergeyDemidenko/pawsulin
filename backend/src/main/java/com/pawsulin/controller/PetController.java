@@ -4,12 +4,12 @@ import com.pawsulin.dto.CreatePetRequest;
 import com.pawsulin.dto.PetDTO;
 import com.pawsulin.dto.UpdatePetRequest;
 import com.pawsulin.service.PetService;
+import com.pawsulin.util.PaginationUtil;
 import com.pawsulin.util.SecurityUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -54,7 +54,7 @@ public class PetController {
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
         Long userId = extractUserIdFromAuthentication();
         log.info("Get all pets request for user: {}", userId);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Pageable pageable = PaginationUtil.createPageable(page, size, sortBy, direction);
         Page<PetDTO> pets = petService.getPetsByUserId(userId, pageable);
         return ResponseEntity.ok(pets);
     }
