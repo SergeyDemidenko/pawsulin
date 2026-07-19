@@ -12,6 +12,11 @@ export async function register(request: RegisterRequest): Promise<void> {
   await apiClient.post(`${authBasePath}/register`, request)
 }
 
+export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
+  const response = await apiClient.post<AuthResponse>(`${authBasePath}/google`, { idToken })
+  return response.data
+}
+
 export async function logout(): Promise<void> {
   await apiClient.post(`${authBasePath}/logout`)
 }

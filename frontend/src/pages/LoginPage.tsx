@@ -1,6 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { login } from '../services/authService'
+import { GoogleAuthButton } from '../components/auth/GoogleAuthButton'
+import { isGoogleAuthEnabled } from '../config/auth'
+import { login, loginWithGoogle } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
 import { extractApiErrorMessage } from '../utils/apiError'
 
@@ -12,8 +14,24 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
   const message = (location.state as { message?: string } | null)?.message ?? null
   const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/dashboard'
+
+  const handleGoogleSignIn = useCallback(async (idToken: string) => {
+    setError(null)
+    setIsGoogleSubmitting(true)
+
+    try {
+      const session = await loginWithGoogle(idToken)
+      setSession(session)
+      navigate(fromPath, { replace: true })
+    } catch (requestError) {
+      setError(extractApiErrorMessage(requestError, 'Unable to sign in with Google. Please try again.'))
+    } finally {
+      setIsGoogleSubmitting(false)
+    }
+  }, [fromPath, navigate, setSession])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -36,6 +54,19 @@ export function LoginPage() {
       <h1 className="text-2xl font-semibold text-slate-900">Sign in</h1>
       <p className="mt-2 text-sm text-slate-600">Use your account credentials to continue.</p>
       {message ? <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p> : null}
+      {isGoogleAuthEnabled ? (
+        <>
+          <div className="mt-6 space-y-4">
+            <GoogleAuthButton
+              text="signin_with"
+              onCredential={handleGoogleSignIn}
+              onError={setError}
+            />
+            <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-400">or continue with email</p>
+          </div>
+          {isGoogleSubmitting ? <p className="mt-3 text-sm text-slate-600">Signing in with Google…</p> : null}
+        </>
+      ) : null}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">Email</span>

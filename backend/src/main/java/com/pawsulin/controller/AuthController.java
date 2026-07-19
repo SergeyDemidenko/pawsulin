@@ -3,6 +3,7 @@ package com.pawsulin.controller;
 import com.pawsulin.dto.UserDTO;
 import com.pawsulin.dto.auth.LoginRequest;
 import com.pawsulin.dto.auth.RegisterRequest;
+import com.pawsulin.dto.auth.GoogleAuthRequest;
 import com.pawsulin.dto.auth.AuthResponse;
 import com.pawsulin.service.AuthService;
 import jakarta.validation.Valid;
@@ -33,6 +34,13 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         log.info("Login request for email: {}", request.getEmail());
         AuthResponse authResponse = authService.login(request);
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> loginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
+        log.info("Google auth request received");
+        AuthResponse authResponse = authService.loginWithGoogle(request);
         return ResponseEntity.ok(authResponse);
     }
 

@@ -3,11 +3,13 @@ package com.pawsulin.service.test;
 import com.pawsulin.dto.UserDTO;
 import com.pawsulin.dto.auth.LoginRequest;
 import com.pawsulin.dto.auth.RegisterRequest;
+import com.pawsulin.dto.auth.GoogleAuthRequest;
 import com.pawsulin.dto.auth.AuthResponse;
 import com.pawsulin.entity.User;
 import com.pawsulin.exception.DuplicateResourceException;
 import com.pawsulin.mapper.UserMapper;
 import com.pawsulin.repository.UserRepository;
+import com.pawsulin.security.GoogleTokenVerifier;
 import com.pawsulin.security.JwtTokenProvider;
 import com.pawsulin.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +46,9 @@ class AuthServiceTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Mock
+    private GoogleTokenVerifier googleTokenVerifier;
+
+    @Mock
     private UserMapper userMapper;
 
     @InjectMocks
@@ -51,6 +56,7 @@ class AuthServiceTest {
 
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;
+    private GoogleAuthRequest googleAuthRequest;
     private User testUser;
 
     @BeforeEach
@@ -65,6 +71,10 @@ class AuthServiceTest {
         loginRequest = LoginRequest.builder()
                 .email("test@example.com")
                 .password("password123")
+                .build();
+
+        googleAuthRequest = GoogleAuthRequest.builder()
+                .idToken("google-id-token")
                 .build();
 
         testUser = User.builder()
@@ -132,6 +142,77 @@ class AuthServiceTest {
         assertEquals("accessToken", result.getAccessToken());
         assertEquals("refreshToken", result.getRefreshToken());
         assertEquals(testUser.getId(), result.getUserId());
+    }
+
+    @Test
+    @DisplayName("Should authenticate existing user with Google successfully")
+    void testGoogleLoginSuccess() {
+        GoogleTokenVerifier.GoogleUserProfile profile = new GoogleTokenVerifier.GoogleUserProfile(
+                testUser.getEmail(),
+                testUser.getFirstName(),
+                testUser.getLastName());
+        when(googleTokenVerifier.verifyIdToken(googleAuthRequest.getIdToken())).thenReturn(profile);
+        when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+        when(jwtTokenProvider.generateToken(testUser.getId(), testUser.getEmail())).thenReturn("accessToken");
+        when(jwtTokenProvider.generateRefreshToken(testUser.getId(), testUser.getEmail())).thenReturn("refreshToken");
+
+        AuthResponse result = authService.loginWithGoogle(googleAuthRequest);
+
+        assertNotNull(result);
+        assertEquals("accessToken", result.getAccessToken());
+        assertEquals(testUser.getId(), result.getUserId());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should register new user during Google authentication")
+    void testGoogleLoginRegistersNewUser() {
+        GoogleTokenVerifier.GoogleUserProfile profile = new GoogleTokenVerifier.GoogleUserProfile(
+                "new@example.com",
+                "Jane",
+                "Doe");
+        User newUser = User.builder()
+                .id(2L)
+                .email("new@example.com")
+                .password("hashedPassword")
+                .firstName("Jane")
+                .lastName("Doe")
+                .role(User.UserRole.PET_OWNER)
+                .isActive(true)
+                .build();
+
+        when(googleTokenVerifier.verifyIdToken(googleAuthRequest.getIdToken())).thenReturn(profile);
+        when(userRepository.findByEmail(profile.email())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(any(String.class))).thenReturn("hashedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(newUser);
+        when(jwtTokenProvider.generateToken(newUser.getId(), newUser.getEmail())).thenReturn("accessToken");
+        when(jwtTokenProvider.generateRefreshToken(newUser.getId(), newUser.getEmail())).thenReturn("refreshToken");
+
+        AuthResponse result = authService.loginWithGoogle(googleAuthRequest);
+
+        assertNotNull(result);
+        assertEquals(newUser.getId(), result.getUserId());
+        assertEquals(newUser.getEmail(), result.getEmail());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should propagate save failures during Google user registration")
+    void testGoogleLoginPropagatesSaveFailure() {
+        GoogleTokenVerifier.GoogleUserProfile profile = new GoogleTokenVerifier.GoogleUserProfile(
+                "new@example.com",
+                "Jane",
+                "Doe");
+
+        when(googleTokenVerifier.verifyIdToken(googleAuthRequest.getIdToken())).thenReturn(profile);
+        when(userRepository.findByEmail(profile.email())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(any(String.class))).thenReturn("hashedPassword");
+        when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("save failed"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.loginWithGoogle(googleAuthRequest));
+
+        assertEquals("save failed", exception.getMessage());
+        verify(jwtTokenProvider, never()).generateToken(any(Long.class), any(String.class));
     }
 
     @Test

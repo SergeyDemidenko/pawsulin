@@ -82,6 +82,8 @@ Available variables:
 
 - `VITE_API_BASE_URL` - defaults to `http://localhost:8080/api`
 - `VITE_WS_BASE_URL` - defaults to `ws://localhost:8080`
+- `VITE_GOOGLE_CLIENT_ID` - Google OAuth client ID used by the Google sign-in button
+- `GOOGLE_CLIENT_ID` - backend audience check for Google ID tokens; reuse the same client ID as the frontend
 
 ## Running with Docker Compose
 
@@ -90,6 +92,8 @@ From the repository root:
 ```bash
 export DB_PASSWORD=change-me
 export JWT_SECRET=replace-with-a-long-random-secret
+export GOOGLE_CLIENT_ID=your-google-oauth-client-id
+export VITE_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
 docker compose up --build
 ```
 
