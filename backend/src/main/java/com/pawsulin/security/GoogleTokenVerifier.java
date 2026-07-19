@@ -13,6 +13,8 @@ import java.util.Locale;
 @Component
 public class GoogleTokenVerifier {
 
+    private static final int MAX_NAME_LENGTH = 100;
+
     private final RestClient restClient;
 
     @Value("${app.google.client-id:}")
@@ -96,7 +98,7 @@ public class GoogleTokenVerifier {
     }
 
     private String truncate(String value) {
-        return value.length() <= 100 ? value : value.substring(0, 100);
+        return value.length() <= MAX_NAME_LENGTH ? value : value.substring(0, MAX_NAME_LENGTH);
     }
 
     public record GoogleUserProfile(String email, String firstName, String lastName) {
