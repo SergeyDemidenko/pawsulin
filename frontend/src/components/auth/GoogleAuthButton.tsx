@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react'
+import { googleClientId, isGoogleAuthEnabled } from '../../config/auth'
 
 const GOOGLE_IDENTITY_SCRIPT_SRC = 'https://accounts.google.com/gsi/client'
-const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim()
-
-export const isGoogleAuthEnabled = Boolean(googleClientId)
 
 type GoogleButtonText = 'signin_with' | 'signup_with'
 
@@ -44,6 +42,7 @@ export function GoogleAuthButton({ text, onCredential, onError }: GoogleAuthButt
       return
     }
 
+    const clientId = googleClientId
     let isCancelled = false
 
     const handleLoad = () => {
@@ -52,7 +51,7 @@ export function GoogleAuthButton({ text, onCredential, onError }: GoogleAuthButt
       }
 
       window.google.accounts.id.initialize({
-        client_id: googleClientId,
+        client_id: clientId,
         callback: ({ credential }) => {
           if (!credential) {
             onError('Google sign-in did not return a credential.')

@@ -1,6 +1,7 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { GoogleAuthButton, isGoogleAuthEnabled } from '../components/auth/GoogleAuthButton'
+import { GoogleAuthButton } from '../components/auth/GoogleAuthButton'
+import { isGoogleAuthEnabled } from '../config/auth'
 import { login, loginWithGoogle } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
 import { extractApiErrorMessage } from '../utils/apiError'
