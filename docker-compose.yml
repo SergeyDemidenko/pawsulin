@@ -38,6 +38,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost}
     ports:
       - "8080:8080"
@@ -55,6 +56,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-${GOOGLE_CLIENT_ID:-}}
+        VITE_FACEBOOK_APP_ID: ${VITE_FACEBOOK_APP_ID:-${FACEBOOK_APP_ID:-}}
     container_name: pawsulin-frontend
     restart: unless-stopped
     depends_on:

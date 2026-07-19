@@ -1,6 +1,7 @@
 package com.pawsulin.controller;
 
 import com.pawsulin.dto.UserDTO;
+import com.pawsulin.dto.auth.FacebookAuthRequest;
 import com.pawsulin.dto.auth.LoginRequest;
 import com.pawsulin.dto.auth.RegisterRequest;
 import com.pawsulin.dto.auth.GoogleAuthRequest;
@@ -41,6 +42,13 @@ public class AuthController {
     public ResponseEntity<AuthResponse> loginWithGoogle(@Valid @RequestBody GoogleAuthRequest request) {
         log.info("Google auth request received");
         AuthResponse authResponse = authService.loginWithGoogle(request);
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @PostMapping("/facebook")
+    public ResponseEntity<AuthResponse> loginWithFacebook(@Valid @RequestBody FacebookAuthRequest request) {
+        log.info("Facebook auth request received");
+        AuthResponse authResponse = authService.loginWithFacebook(request);
         return ResponseEntity.ok(authResponse);
     }
 

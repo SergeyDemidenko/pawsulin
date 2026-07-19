@@ -17,6 +17,11 @@ export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
   return response.data
 }
 
+export async function loginWithFacebook(accessToken: string): Promise<AuthResponse> {
+  const response = await apiClient.post<AuthResponse>(`${authBasePath}/facebook`, { accessToken })
+  return response.data
+}
+
 export async function logout(): Promise<void> {
   await apiClient.post(`${authBasePath}/logout`)
 }

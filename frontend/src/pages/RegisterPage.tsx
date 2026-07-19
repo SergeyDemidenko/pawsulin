@@ -1,8 +1,9 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { FacebookAuthButton } from '../components/auth/FacebookAuthButton'
 import { GoogleAuthButton } from '../components/auth/GoogleAuthButton'
-import { isGoogleAuthEnabled } from '../config/auth'
-import { loginWithGoogle, register } from '../services/authService'
+import { isFacebookAuthEnabled, isGoogleAuthEnabled } from '../config/auth'
+import { loginWithFacebook, loginWithGoogle, register } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
 import { extractApiErrorMessage } from '../utils/apiError'
 
@@ -17,6 +18,8 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
+  const [isFacebookSubmitting, setIsFacebookSubmitting] = useState(false)
+  const isSocialAuthEnabled = isGoogleAuthEnabled || isFacebookAuthEnabled
 
   const handleGoogleSignUp = useCallback(async (idToken: string) => {
     setError(null)
@@ -42,6 +45,21 @@ export function RegisterPage() {
       return
     }
 
+    const handleFacebookSignUp = useCallback(async (accessToken: string) => {
+      setError(null)
+      setIsFacebookSubmitting(true)
+
+      try {
+        const session = await loginWithFacebook(accessToken)
+        setSession(session)
+        navigate('/dashboard', { replace: true })
+      } catch (requestError) {
+        setError(extractApiErrorMessage(requestError, 'Could not continue with Facebook. Please try again.'))
+      } finally {
+        setIsFacebookSubmitting(false)
+      }
+    }, [navigate, setSession])
+
     setIsSubmitting(true)
 
     try {
@@ -63,17 +81,26 @@ export function RegisterPage() {
     <section className="mx-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h1 className="text-2xl font-semibold text-slate-900">Create account</h1>
       <p className="mt-2 text-sm text-slate-600">Register to start tracking your pet’s data.</p>
-      {isGoogleAuthEnabled ? (
+      {isSocialAuthEnabled ? (
         <>
           <div className="mt-6 space-y-4">
-            <GoogleAuthButton
-              text="signup_with"
-              onCredential={handleGoogleSignUp}
-              onError={setError}
-            />
+            {isGoogleAuthEnabled ? (
+              <GoogleAuthButton
+                text="signup_with"
+                onCredential={handleGoogleSignUp}
+                onError={setError}
+              />
+            ) : null}
+            {isFacebookAuthEnabled ? (
+              <FacebookAuthButton
+                onCredential={handleFacebookSignUp}
+                onError={setError}
+              />
+            ) : null}
             <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-400">or continue with email</p>
           </div>
           {isGoogleSubmitting ? <p className="mt-3 text-sm text-slate-600">Continuing with Google…</p> : null}
+          {isFacebookSubmitting ? <p className="mt-3 text-sm text-slate-600">Continuing with Facebook…</p> : null}
         </>
       ) : null}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
