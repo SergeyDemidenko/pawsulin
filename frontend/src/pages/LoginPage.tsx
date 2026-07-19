@@ -1,9 +1,10 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { AppleAuthButton } from '../components/auth/AppleAuthButton'
 import { FacebookAuthButton } from '../components/auth/FacebookAuthButton'
 import { GoogleAuthButton } from '../components/auth/GoogleAuthButton'
-import { isFacebookAuthEnabled, isGoogleAuthEnabled } from '../config/auth'
-import { login, loginWithFacebook, loginWithGoogle } from '../services/authService'
+import { isAppleAuthEnabled, isFacebookAuthEnabled, isGoogleAuthEnabled } from '../config/auth'
+import { login, loginWithApple, loginWithFacebook, loginWithGoogle } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
 import { extractApiErrorMessage } from '../utils/apiError'
 
@@ -17,9 +18,10 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
   const [isFacebookSubmitting, setIsFacebookSubmitting] = useState(false)
+  const [isAppleSubmitting, setIsAppleSubmitting] = useState(false)
   const message = (location.state as { message?: string } | null)?.message ?? null
   const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/dashboard'
-  const isSocialAuthEnabled = isGoogleAuthEnabled || isFacebookAuthEnabled
+  const isSocialAuthEnabled = isGoogleAuthEnabled || isFacebookAuthEnabled || isAppleAuthEnabled
 
   const handleGoogleSignIn = useCallback(async (idToken: string) => {
     setError(null)
@@ -67,6 +69,21 @@ export function LoginPage() {
     }
   }, [fromPath, navigate, setSession])
 
+  const handleAppleSignIn = useCallback(async (idToken: string, firstName?: string, lastName?: string) => {
+    setError(null)
+    setIsAppleSubmitting(true)
+
+    try {
+      const session = await loginWithApple(idToken, firstName, lastName)
+      setSession(session)
+      navigate(fromPath, { replace: true })
+    } catch (requestError) {
+      setError(extractApiErrorMessage(requestError, 'Unable to sign in with Apple. Please try again.'))
+    } finally {
+      setIsAppleSubmitting(false)
+    }
+  }, [fromPath, navigate, setSession])
+
   return (
     <section className="mx-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h1 className="text-2xl font-semibold text-slate-900">Sign in</h1>
@@ -88,10 +105,17 @@ export function LoginPage() {
                 onError={setError}
               />
             ) : null}
+            {isAppleAuthEnabled ? (
+              <AppleAuthButton
+                onCredential={handleAppleSignIn}
+                onError={setError}
+              />
+            ) : null}
             <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-400">or continue with email</p>
           </div>
           {isGoogleSubmitting ? <p className="mt-3 text-sm text-slate-600">Signing in with Google…</p> : null}
           {isFacebookSubmitting ? <p className="mt-3 text-sm text-slate-600">Signing in with Facebook…</p> : null}
+          {isAppleSubmitting ? <p className="mt-3 text-sm text-slate-600">Signing in with Apple…</p> : null}
         </>
       ) : null}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">

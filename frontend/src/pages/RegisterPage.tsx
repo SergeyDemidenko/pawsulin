@@ -1,9 +1,10 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AppleAuthButton } from '../components/auth/AppleAuthButton'
 import { FacebookAuthButton } from '../components/auth/FacebookAuthButton'
 import { GoogleAuthButton } from '../components/auth/GoogleAuthButton'
-import { isFacebookAuthEnabled, isGoogleAuthEnabled } from '../config/auth'
-import { loginWithFacebook, loginWithGoogle, register } from '../services/authService'
+import { isAppleAuthEnabled, isFacebookAuthEnabled, isGoogleAuthEnabled } from '../config/auth'
+import { loginWithApple, loginWithFacebook, loginWithGoogle, register } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
 import { extractApiErrorMessage } from '../utils/apiError'
 
@@ -19,7 +20,8 @@ export function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
   const [isFacebookSubmitting, setIsFacebookSubmitting] = useState(false)
-  const isSocialAuthEnabled = isGoogleAuthEnabled || isFacebookAuthEnabled
+  const [isAppleSubmitting, setIsAppleSubmitting] = useState(false)
+  const isSocialAuthEnabled = isGoogleAuthEnabled || isFacebookAuthEnabled || isAppleAuthEnabled
 
   const handleGoogleSignUp = useCallback(async (idToken: string) => {
     setError(null)
@@ -77,6 +79,21 @@ export function RegisterPage() {
     }
   }, [navigate, setSession])
 
+  const handleAppleSignUp = useCallback(async (idToken: string, firstName?: string, lastName?: string) => {
+    setError(null)
+    setIsAppleSubmitting(true)
+
+    try {
+      const session = await loginWithApple(idToken, firstName, lastName)
+      setSession(session)
+      navigate('/dashboard', { replace: true })
+    } catch (requestError) {
+      setError(extractApiErrorMessage(requestError, 'Could not continue with Apple. Please try again.'))
+    } finally {
+      setIsAppleSubmitting(false)
+    }
+  }, [navigate, setSession])
+
   return (
     <section className="mx-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h1 className="text-2xl font-semibold text-slate-900">Create account</h1>
@@ -97,10 +114,17 @@ export function RegisterPage() {
                 onError={setError}
               />
             ) : null}
+            {isAppleAuthEnabled ? (
+              <AppleAuthButton
+                onCredential={handleAppleSignUp}
+                onError={setError}
+              />
+            ) : null}
             <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-400">or continue with email</p>
           </div>
           {isGoogleSubmitting ? <p className="mt-3 text-sm text-slate-600">Continuing with Google…</p> : null}
           {isFacebookSubmitting ? <p className="mt-3 text-sm text-slate-600">Continuing with Facebook…</p> : null}
+          {isAppleSubmitting ? <p className="mt-3 text-sm text-slate-600">Continuing with Apple…</p> : null}
         </>
       ) : null}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
