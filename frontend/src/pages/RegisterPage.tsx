@@ -1,10 +1,13 @@
-import { useState, type FormEvent } from 'react'
+import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { register } from '../services/authService'
+import { GoogleAuthButton, isGoogleAuthEnabled } from '../components/auth/GoogleAuthButton'
+import { loginWithGoogle, register } from '../services/authService'
+import { useAuth } from '../hooks/useAuth'
 import { extractApiErrorMessage } from '../utils/apiError'
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { setSession } = useAuth()
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -12,6 +15,22 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
+
+  const handleGoogleSignUp = useCallback(async (idToken: string) => {
+    setError(null)
+    setIsGoogleSubmitting(true)
+
+    try {
+      const session = await loginWithGoogle(idToken)
+      setSession(session)
+      navigate('/dashboard', { replace: true })
+    } catch (requestError) {
+      setError(extractApiErrorMessage(requestError, 'Could not continue with Google. Please try again.'))
+    } finally {
+      setIsGoogleSubmitting(false)
+    }
+  }, [navigate, setSession])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -43,6 +62,19 @@ export function RegisterPage() {
     <section className="mx-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h1 className="text-2xl font-semibold text-slate-900">Create account</h1>
       <p className="mt-2 text-sm text-slate-600">Register to start tracking your pet’s data.</p>
+      {isGoogleAuthEnabled ? (
+        <>
+          <div className="mt-6 space-y-4">
+            <GoogleAuthButton
+              text="signup_with"
+              onCredential={handleGoogleSignUp}
+              onError={setError}
+            />
+            <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-400">or continue with email</p>
+          </div>
+          {isGoogleSubmitting ? <p className="mt-3 text-sm text-slate-600">Continuing with Google…</p> : null}
+        </>
+      ) : null}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block">
