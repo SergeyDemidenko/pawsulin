@@ -22,6 +22,11 @@ export async function loginWithFacebook(accessToken: string): Promise<AuthRespon
   return response.data
 }
 
+export async function loginWithApple(idToken: string, firstName?: string, lastName?: string): Promise<AuthResponse> {
+  const response = await apiClient.post<AuthResponse>(`${authBasePath}/apple`, { idToken, firstName, lastName })
+  return response.data
+}
+
 export async function logout(): Promise<void> {
   await apiClient.post(`${authBasePath}/logout`)
 }

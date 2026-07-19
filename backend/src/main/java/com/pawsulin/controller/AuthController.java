@@ -1,6 +1,7 @@
 package com.pawsulin.controller;
 
 import com.pawsulin.dto.UserDTO;
+import com.pawsulin.dto.auth.AppleAuthRequest;
 import com.pawsulin.dto.auth.FacebookAuthRequest;
 import com.pawsulin.dto.auth.LoginRequest;
 import com.pawsulin.dto.auth.RegisterRequest;
@@ -49,6 +50,13 @@ public class AuthController {
     public ResponseEntity<AuthResponse> loginWithFacebook(@Valid @RequestBody FacebookAuthRequest request) {
         log.info("Facebook auth request received");
         AuthResponse authResponse = authService.loginWithFacebook(request);
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @PostMapping("/apple")
+    public ResponseEntity<AuthResponse> loginWithApple(@Valid @RequestBody AppleAuthRequest request) {
+        log.info("Apple auth request received");
+        AuthResponse authResponse = authService.loginWithApple(request);
         return ResponseEntity.ok(authResponse);
     }
 

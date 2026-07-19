@@ -1,6 +1,7 @@
 package com.pawsulin.service;
 
 import com.pawsulin.dto.UserDTO;
+import com.pawsulin.dto.auth.AppleAuthRequest;
 import com.pawsulin.dto.auth.FacebookAuthRequest;
 import com.pawsulin.dto.auth.LoginRequest;
 import com.pawsulin.dto.auth.RegisterRequest;
@@ -10,6 +11,7 @@ import com.pawsulin.entity.User;
 import com.pawsulin.exception.DuplicateResourceException;
 import com.pawsulin.mapper.UserMapper;
 import com.pawsulin.repository.UserRepository;
+import com.pawsulin.security.AppleTokenVerifier;
 import com.pawsulin.security.FacebookTokenVerifier;
 import com.pawsulin.security.GoogleTokenVerifier;
 import com.pawsulin.security.JwtTokenProvider;
@@ -49,6 +51,9 @@ public class AuthService {
 
     @Autowired
     private FacebookTokenVerifier facebookTokenVerifier;
+
+    @Autowired
+    private AppleTokenVerifier appleTokenVerifier;
 
     public UserDTO register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -117,6 +122,21 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getRole().name());
     }
 
+    public AuthResponse loginWithApple(AppleAuthRequest request) {
+        AppleTokenVerifier.AppleUserProfile profile = appleTokenVerifier.verifyIdToken(
+                request.getIdToken(), request.getFirstName(), request.getLastName());
+
+        User user = userRepository.findByEmail(profile.email())
+                .orElseGet(() -> registerAppleUser(profile));
+
+        String accessToken = jwtTokenProvider.generateToken(user.getId(), user.getEmail());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId(), user.getEmail());
+
+        log.info("User authenticated with Apple successfully: {}", user.getEmail());
+
+        return new AuthResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getRole().name());
+    }
+
     public UserDTO getCurrentUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -166,6 +186,21 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
         log.info("User registered with Facebook successfully: {}", savedUser.getEmail());
+        return savedUser;
+    }
+
+    private User registerAppleUser(AppleTokenVerifier.AppleUserProfile profile) {
+        User user = User.builder()
+                .email(profile.email())
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .firstName(profile.firstName())
+                .lastName(profile.lastName())
+                .role(User.UserRole.PET_OWNER)
+                .isActive(true)
+                .build();
+
+        User savedUser = userRepository.save(user);
+        log.info("User registered with Apple successfully: {}", savedUser.getEmail());
         return savedUser;
     }
 }
