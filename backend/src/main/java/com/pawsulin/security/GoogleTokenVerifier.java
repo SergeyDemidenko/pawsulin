@@ -65,13 +65,14 @@ public class GoogleTokenVerifier {
         }
 
         String email = tokenInfo.email().trim().toLowerCase(Locale.ROOT);
-        String firstName = resolveFirstName(tokenInfo);
+        String emailLocalPart = email.split("@", 2)[0];
+        String firstName = resolveFirstName(tokenInfo, emailLocalPart);
         String lastName = resolveLastName(tokenInfo);
 
         return new GoogleUserProfile(email, firstName, lastName);
     }
 
-    private String resolveFirstName(GoogleTokenInfo tokenInfo) {
+    private String resolveFirstName(GoogleTokenInfo tokenInfo, String emailLocalPart) {
         if (tokenInfo.givenName() != null && !tokenInfo.givenName().isBlank()) {
             return truncate(tokenInfo.givenName().trim());
         }
@@ -81,7 +82,7 @@ public class GoogleTokenVerifier {
                 return truncate(parts[0]);
             }
         }
-        return truncate(tokenInfo.email().split("@", 2)[0]);
+        return truncate(emailLocalPart);
     }
 
     private String resolveLastName(GoogleTokenInfo tokenInfo) {

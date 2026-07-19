@@ -197,6 +197,25 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("Should propagate save failures during Google user registration")
+    void testGoogleLoginPropagatesSaveFailure() {
+        GoogleTokenVerifier.GoogleUserProfile profile = new GoogleTokenVerifier.GoogleUserProfile(
+                "new@example.com",
+                "Jane",
+                "Doe");
+
+        when(googleTokenVerifier.verifyIdToken(googleAuthRequest.getIdToken())).thenReturn(profile);
+        when(userRepository.findByEmail(profile.email())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(any(String.class))).thenReturn("hashedPassword");
+        when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("save failed"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.loginWithGoogle(googleAuthRequest));
+
+        assertEquals("save failed", exception.getMessage());
+        verify(jwtTokenProvider, never()).generateToken(any(Long.class), any(String.class));
+    }
+
+    @Test
     @DisplayName("Should get current user successfully")
     void testGetCurrentUserSuccess() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
