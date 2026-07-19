@@ -91,9 +91,13 @@ export function AppleAuthButton({ onCredential, onError }: AppleAuthButtonProps)
       const firstName = response.user?.name?.firstName
       const lastName = response.user?.name?.lastName
       await onCredential(idToken, firstName, lastName)
-    } catch {
-      // User cancelled or other sign-in error
-      onError('Apple sign-in was cancelled or failed. Please try again.')
+    } catch (err) {
+      const error = err as { error?: string } | null
+      if (error?.error === 'popup_closed_by_user' || error?.error === 'user_cancelled_authorize') {
+        // User dismissed the popup — no error message needed
+        return
+      }
+      onError('Apple sign-in failed. Please try again.')
     }
   }, [onCredential, onError])
 

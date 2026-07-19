@@ -2,6 +2,7 @@ package com.pawsulin.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pawsulin.exception.InvalidRequestException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -20,6 +22,7 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Component
 public class AppleTokenVerifier {
@@ -28,14 +31,16 @@ public class AppleTokenVerifier {
     private static final int MAX_NAME_LENGTH = 100;
 
     private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.apple.client-id:}")
     private String appleClientId;
 
-    public AppleTokenVerifier(RestClient.Builder restClientBuilder) {
+    public AppleTokenVerifier(RestClient.Builder restClientBuilder, ObjectMapper objectMapper) {
         this.restClient = restClientBuilder
                 .baseUrl(APPLE_ISSUER)
                 .build();
+        this.objectMapper = objectMapper;
     }
 
     public AppleUserProfile verifyIdToken(String idToken, String firstName, String lastName) {
@@ -89,15 +94,15 @@ public class AppleTokenVerifier {
             throw new InvalidRequestException("Invalid Apple identity token format");
         }
         try {
-            String headerJson = new String(Base64.getUrlDecoder().decode(parts[0]));
-            int kidIndex = headerJson.indexOf("\"kid\"");
-            if (kidIndex < 0) {
+            byte[] headerBytes = Base64.getUrlDecoder().decode(parts[0]);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> header = objectMapper.readValue(headerBytes, Map.class);
+            Object kid = header.get("kid");
+            if (!(kid instanceof String kidStr) || kidStr.isBlank()) {
                 throw new InvalidRequestException("Apple identity token header is missing kid");
             }
-            int start = headerJson.indexOf('"', kidIndex + 5) + 1;
-            int end = headerJson.indexOf('"', start);
-            return headerJson.substring(start, end);
-        } catch (IllegalArgumentException exception) {
+            return kidStr;
+        } catch (IOException | IllegalArgumentException exception) {
             throw new InvalidRequestException("Invalid Apple identity token header", exception);
         }
     }
