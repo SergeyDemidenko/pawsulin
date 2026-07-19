@@ -50,22 +50,22 @@ export function LoginPage() {
     } finally {
       setIsSubmitting(false)
     }
-
-    const handleFacebookSignIn = useCallback(async (accessToken: string) => {
-      setError(null)
-      setIsFacebookSubmitting(true)
-
-      try {
-        const session = await loginWithFacebook(accessToken)
-        setSession(session)
-        navigate(fromPath, { replace: true })
-      } catch (requestError) {
-        setError(extractApiErrorMessage(requestError, 'Unable to sign in with Facebook. Please try again.'))
-      } finally {
-        setIsFacebookSubmitting(false)
-      }
-    }, [fromPath, navigate, setSession])
   }
+
+  const handleFacebookSignIn = useCallback(async (accessToken: string) => {
+    setError(null)
+    setIsFacebookSubmitting(true)
+
+    try {
+      const session = await loginWithFacebook(accessToken)
+      setSession(session)
+      navigate(fromPath, { replace: true })
+    } catch (requestError) {
+      setError(extractApiErrorMessage(requestError, 'Unable to sign in with Facebook. Please try again.'))
+    } finally {
+      setIsFacebookSubmitting(false)
+    }
+  }, [fromPath, navigate, setSession])
 
   return (
     <section className="mx-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

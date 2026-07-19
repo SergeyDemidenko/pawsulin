@@ -45,21 +45,6 @@ export function RegisterPage() {
       return
     }
 
-    const handleFacebookSignUp = useCallback(async (accessToken: string) => {
-      setError(null)
-      setIsFacebookSubmitting(true)
-
-      try {
-        const session = await loginWithFacebook(accessToken)
-        setSession(session)
-        navigate('/dashboard', { replace: true })
-      } catch (requestError) {
-        setError(extractApiErrorMessage(requestError, 'Could not continue with Facebook. Please try again.'))
-      } finally {
-        setIsFacebookSubmitting(false)
-      }
-    }, [navigate, setSession])
-
     setIsSubmitting(true)
 
     try {
@@ -76,6 +61,21 @@ export function RegisterPage() {
       setIsSubmitting(false)
     }
   }
+
+  const handleFacebookSignUp = useCallback(async (accessToken: string) => {
+    setError(null)
+    setIsFacebookSubmitting(true)
+
+    try {
+      const session = await loginWithFacebook(accessToken)
+      setSession(session)
+      navigate('/dashboard', { replace: true })
+    } catch (requestError) {
+      setError(extractApiErrorMessage(requestError, 'Could not continue with Facebook. Please try again.'))
+    } finally {
+      setIsFacebookSubmitting(false)
+    }
+  }, [navigate, setSession])
 
   return (
     <section className="mx-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
