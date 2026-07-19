@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private JwtHandshakeInterceptor jwtHandshakeInterceptor;
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080,http://localhost:5173,http://localhost,http://127.0.0.1}")
     private String allowedOrigins;
 
     @Override

@@ -26,6 +26,22 @@ The repository includes Dockerfiles for the backend and frontend plus a root `do
 - `CORS_ALLOWED_ORIGINS`
 - `SPRING_PROFILES_ACTIVE=prod`
 
+## Quick deployment
+
+A convenience script is provided for a clean build and deployment:
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+This script will:
+1. Stop the application if it's running.
+2. Clean locally built docker images.
+3. Perform a clean Gradle build of the backend.
+4. Rebuild the Docker images.
+5. Start all services in detached mode.
+
 ## Container deployment
 
 1. Build the backend artifact from the repository root:

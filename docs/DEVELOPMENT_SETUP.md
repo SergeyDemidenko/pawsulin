@@ -41,6 +41,26 @@ The frontend dev server starts on `http://localhost:5173`.
 
 ## Local configuration
 
+### Environment variables
+
+For local development, especially when running the application with the `prod` profile or using Docker Compose, you need to set several environment variables. 
+
+Convenience scripts are provided to set default values:
+- **Windows**: `call set-env.bat`
+- **Linux/macOS**: `source ./set-env.sh`
+
+### Seeding data
+
+For testing purposes, you can populate the database with a default user, pet, and historical insulin data:
+
+- **Windows**: `.\seed-data.bat`
+- **Linux/macOS**: `./seed-data.sh`
+
+This will create:
+- User: `sd@s.d` / `12345678`
+- Pet: `pupochka`
+- 5 days of realistic insulin injection logs and aligned glucose readings.
+
 ### Backend
 
 The default active profile is `dev`. Local configuration is defined in:

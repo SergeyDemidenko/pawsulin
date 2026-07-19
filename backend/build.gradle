@@ -76,3 +76,14 @@ tasks.named('test') {
 tasks.named('bootJar') {
     archiveFileName = 'backend.jar'
 }
+
+// Support for building on WSL/NTFS mounts
+tasks.withType(Jar).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+tasks.withType(Copy).configureEach {
+    fileMode = 0644
+    dirMode = 0755
+}

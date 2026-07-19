@@ -1,0 +1,10 @@
+.git
+.gradle
+.idea
+build/
+**/build/
+node_modules/
+**/node_modules/
+*.log
+.env
+.env.local

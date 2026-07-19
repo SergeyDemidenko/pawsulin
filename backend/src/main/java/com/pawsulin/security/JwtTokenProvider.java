@@ -28,7 +28,7 @@ public class JwtTokenProvider {
                 .claim("userId", userId)
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS512)
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(jwtSecret.getBytes()), Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -42,7 +42,7 @@ public class JwtTokenProvider {
                 .claim("type", "REFRESH")
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS512)
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(jwtSecret.getBytes()), Jwts.SIG.HS256)
                 .compact();
     }
 
