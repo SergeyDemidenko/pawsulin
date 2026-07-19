@@ -1,7 +1,7 @@
 package com.pawsulin.config;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @ActiveProfiles("dev")
-@Ignore
+@Disabled("Ignored due to CI database dependency")
 public class CorsIntegrationTest {
 
     @Autowired
