@@ -1,6 +1,7 @@
 package com.pawsulin.service;
 
 import com.pawsulin.dto.UserDTO;
+import com.pawsulin.dto.auth.FacebookAuthRequest;
 import com.pawsulin.dto.auth.LoginRequest;
 import com.pawsulin.dto.auth.RegisterRequest;
 import com.pawsulin.dto.auth.GoogleAuthRequest;
@@ -9,6 +10,7 @@ import com.pawsulin.entity.User;
 import com.pawsulin.exception.DuplicateResourceException;
 import com.pawsulin.mapper.UserMapper;
 import com.pawsulin.repository.UserRepository;
+import com.pawsulin.security.FacebookTokenVerifier;
 import com.pawsulin.security.GoogleTokenVerifier;
 import com.pawsulin.security.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,9 @@ public class AuthService {
 
     @Autowired
     private GoogleTokenVerifier googleTokenVerifier;
+
+    @Autowired
+    private FacebookTokenVerifier facebookTokenVerifier;
 
     public UserDTO register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -98,6 +103,20 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getRole().name());
     }
 
+    public AuthResponse loginWithFacebook(FacebookAuthRequest request) {
+        FacebookTokenVerifier.FacebookUserProfile profile = facebookTokenVerifier.verifyAccessToken(request.getAccessToken());
+
+        User user = userRepository.findByEmail(profile.email())
+                .orElseGet(() -> registerFacebookUser(profile));
+
+        String accessToken = jwtTokenProvider.generateToken(user.getId(), user.getEmail());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId(), user.getEmail());
+
+        log.info("User authenticated with Facebook successfully: {}", user.getEmail());
+
+        return new AuthResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getRole().name());
+    }
+
     public UserDTO getCurrentUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -132,6 +151,21 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
         log.info("User registered with Google successfully: {}", savedUser.getEmail());
+        return savedUser;
+    }
+
+    private User registerFacebookUser(FacebookTokenVerifier.FacebookUserProfile profile) {
+        User user = User.builder()
+                .email(profile.email())
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .firstName(profile.firstName())
+                .lastName(profile.lastName())
+                .role(User.UserRole.PET_OWNER)
+                .isActive(true)
+                .build();
+
+        User savedUser = userRepository.save(user);
+        log.info("User registered with Facebook successfully: {}", savedUser.getEmail());
         return savedUser;
     }
 }

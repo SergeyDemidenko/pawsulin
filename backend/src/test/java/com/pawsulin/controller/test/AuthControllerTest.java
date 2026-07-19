@@ -3,6 +3,7 @@ package com.pawsulin.controller.test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pawsulin.controller.AuthController;
 import com.pawsulin.dto.UserDTO;
+import com.pawsulin.dto.auth.FacebookAuthRequest;
 import com.pawsulin.dto.auth.LoginRequest;
 import com.pawsulin.dto.auth.RegisterRequest;
 import com.pawsulin.dto.auth.GoogleAuthRequest;
@@ -91,6 +92,31 @@ class AuthControllerTest {
         when(authService.loginWithGoogle(any(GoogleAuthRequest.class))).thenReturn(expectedResponse);
 
         mockMvc.perform(post("/api/v1/auth/google")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("accessToken"))
+                .andExpect(jsonPath("$.email").value("test@example.com"));
+    }
+
+    @Test
+    @DisplayName("Should authenticate with Facebook successfully")
+    void testFacebookLoginSuccess() throws Exception {
+        FacebookAuthRequest request = FacebookAuthRequest.builder()
+                .accessToken("facebook-access-token")
+                .build();
+
+        AuthResponse expectedResponse = AuthResponse.builder()
+                .accessToken("accessToken")
+                .refreshToken("refreshToken")
+                .userId(1L)
+                .email("test@example.com")
+                .role("PET_OWNER")
+                .build();
+
+        when(authService.loginWithFacebook(any(FacebookAuthRequest.class))).thenReturn(expectedResponse);
+
+        mockMvc.perform(post("/api/v1/auth/facebook")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

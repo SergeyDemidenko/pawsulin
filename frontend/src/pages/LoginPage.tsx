@@ -1,8 +1,9 @@
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { FacebookAuthButton } from '../components/auth/FacebookAuthButton'
 import { GoogleAuthButton } from '../components/auth/GoogleAuthButton'
-import { isGoogleAuthEnabled } from '../config/auth'
-import { login, loginWithGoogle } from '../services/authService'
+import { isFacebookAuthEnabled, isGoogleAuthEnabled } from '../config/auth'
+import { login, loginWithFacebook, loginWithGoogle } from '../services/authService'
 import { useAuth } from '../hooks/useAuth'
 import { extractApiErrorMessage } from '../utils/apiError'
 
@@ -15,8 +16,10 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
+  const [isFacebookSubmitting, setIsFacebookSubmitting] = useState(false)
   const message = (location.state as { message?: string } | null)?.message ?? null
   const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/dashboard'
+  const isSocialAuthEnabled = isGoogleAuthEnabled || isFacebookAuthEnabled
 
   const handleGoogleSignIn = useCallback(async (idToken: string) => {
     setError(null)
@@ -49,22 +52,46 @@ export function LoginPage() {
     }
   }
 
+  const handleFacebookSignIn = useCallback(async (accessToken: string) => {
+    setError(null)
+    setIsFacebookSubmitting(true)
+
+    try {
+      const session = await loginWithFacebook(accessToken)
+      setSession(session)
+      navigate(fromPath, { replace: true })
+    } catch (requestError) {
+      setError(extractApiErrorMessage(requestError, 'Unable to sign in with Facebook. Please try again.'))
+    } finally {
+      setIsFacebookSubmitting(false)
+    }
+  }, [fromPath, navigate, setSession])
+
   return (
     <section className="mx-auto w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h1 className="text-2xl font-semibold text-slate-900">Sign in</h1>
       <p className="mt-2 text-sm text-slate-600">Use your account credentials to continue.</p>
       {message ? <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p> : null}
-      {isGoogleAuthEnabled ? (
+      {isSocialAuthEnabled ? (
         <>
           <div className="mt-6 space-y-4">
-            <GoogleAuthButton
-              text="signin_with"
-              onCredential={handleGoogleSignIn}
-              onError={setError}
-            />
+            {isGoogleAuthEnabled ? (
+              <GoogleAuthButton
+                text="signin_with"
+                onCredential={handleGoogleSignIn}
+                onError={setError}
+              />
+            ) : null}
+            {isFacebookAuthEnabled ? (
+              <FacebookAuthButton
+                onCredential={handleFacebookSignIn}
+                onError={setError}
+              />
+            ) : null}
             <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-400">or continue with email</p>
           </div>
           {isGoogleSubmitting ? <p className="mt-3 text-sm text-slate-600">Signing in with Google…</p> : null}
+          {isFacebookSubmitting ? <p className="mt-3 text-sm text-slate-600">Signing in with Facebook…</p> : null}
         </>
       ) : null}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
